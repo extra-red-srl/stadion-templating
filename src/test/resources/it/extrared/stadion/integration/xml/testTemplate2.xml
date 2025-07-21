@@ -1,0 +1,14 @@
+<Product xmlns:stadion="http://localhost:8080/stadion">
+    <name>{{$jpointer:'/productName'}}</name>
+    <manufacturer stadion:ctx="{{$jpointer:'/producer'}}">
+        <location>{{$jpointer:'/address'}} {{$jpointer:'/city'}} {{$jpointer:'/country'}}</location>
+        <name>{{$jpointer:'/companyName'}}</name>
+    </manufacturer>
+    <materials stadion:ctx="{{$jpointer: '/composition'}}">materials: {{$jpointer:'/composition/materials'}}</materials>
+    <performance>
+        <performanceIndex>{{$jpointer: '/efficiency'}}</performanceIndex>
+        <envPerformance>{{$jpointer: '/envIndex'}}</envPerformance>
+        <recycled>{{$jpointer: '/recycled'}}</recycled>
+    </performance>
+    <productionDate>{{$jpointer: '/producedOn'}}</productionDate>
+</Product>
