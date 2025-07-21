@@ -1,0 +1,24 @@
+<Product name="battery">
+    <producer>
+        <address>via Salvo di Acquisto 44p</address>
+        <city>Pisa</city>
+        <country>IT</country>
+        <companyName>Extrared</companyName>
+    </producer>
+    <composition>
+        <materials>
+            <name>lithium</name>
+            <symbol>Li</symbol>
+            <concentration>0.5</concentration>
+        </materials>
+        <materials>
+            <name>nichel</name>
+            <symbol>Ni</symbol>
+            <concentration>1.6</concentration>
+        </materials>
+    </composition>
+    <efficiency>10</efficiency>
+    <envIndex>10.4</envIndex>
+    <recycled>false</recycled>
+    <producedOn>22/04/2024</producedOn>
+</Product>

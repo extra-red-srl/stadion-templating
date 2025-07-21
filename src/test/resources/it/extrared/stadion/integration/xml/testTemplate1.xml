@@ -1,0 +1,14 @@
+<Product xmlns:stadion="http://localhost:8080/stadion" stadion:ctx="{{$xpath:'/Product'}}">
+    <name>{{$xpath:'@name'}}</name>
+    <manufacturer stadion:ctx="{{$xpath:'producer'}}">
+        <location>{{$xpath:'address/text()'}} {{$xpath:'city/text()'}} {{$xpath:'country/text()'}}</location>
+        <name>{{$xpath:'companyName/text()'}}</name>
+    </manufacturer>
+    <materials stadion:ctx="{{$xpath: 'composition'}}">materials: {{$xpath:'//materials/text()'}}</materials>
+    <performance>
+        <performanceIndex>{{$xpath: 'efficiency/text()'}}</performanceIndex>
+        <envPerformance>{{$xpath: 'envIndex/text()'}}</envPerformance>
+        <recycled>{{$xpath: 'recycled/text()'}}</recycled>
+    </performance>
+    <productionDate>{{$xpath: 'producedOn/text()'}}</productionDate>
+</Product>

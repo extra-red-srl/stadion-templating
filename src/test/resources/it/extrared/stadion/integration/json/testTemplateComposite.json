@@ -1,0 +1,31 @@
+{
+  "name": "{{$jpointer:'/productName' $!null}} {{$jpointer:'/productName'}}",
+  "manufacturer": {
+    "$if": "{{$isXML}}",
+    "$ctx": "{{$xpath:'/producer'}}",
+    "contactDetails": {
+      "address": "{{$xpath:'address/text()'}}",
+      "city": "{{$xpath:'city/text()'}}",
+      "country": "{{$xpath:'country/text()'}}"
+    },
+    "name": "{{$xpath:'companyName/text()'}}"
+  },
+  "anode": [
+    {
+      "$if": "{{$isJSON}}",
+      "$ctx": "{{$jpointer:'/composition/materials'}}"
+    },
+    {
+      "$if": "{{$jpointer:'/concentration' $gte 1}}",
+      "materialName": "{{$jpointer:'/name'}} - {{$jpointer:'/symbol'}}",
+      "concentration": "{{$jpointer:'/concentration'}}"
+    }
+  ],
+  "performance": {
+    "$if": "{{$isJSON}}",
+    "performanceIndex": "{{$jpointer:'/efficiency'}}",
+    "envPerformance": "{{$jpointer:'/envIndex'}}",
+    "recycled": "{{$jpointer:'/recycled'}}"
+  },
+  "productionDate": "{{$isJSON}} {{$jpointer:'/producedOn' | $d_fmt:'dd/MM/yyyy':'yyyy-MM-dd'}}"
+}

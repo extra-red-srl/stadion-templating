@@ -1,0 +1,19 @@
+{
+  "productName": "battery",
+  "producer": {
+    "address": "via Salvo di Acquisto 44p",
+    "city": "Pisa",
+    "country": "IT",
+    "companyName": "Extrared"
+  },
+  "composition": {
+    "materials": [
+      "lithium",
+      "nichel"
+    ]
+  },
+  "efficiency": 10,
+  "envIndex": 10.4,
+  "recycled": false,
+  "producedOn": "22/04/2024"
+}

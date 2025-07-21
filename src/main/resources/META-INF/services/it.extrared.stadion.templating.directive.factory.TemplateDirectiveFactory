@@ -1,0 +1,7 @@
+it.extrared.stadion.templating.directive.factory.JsonPointerDirectiveFactory
+it.extrared.stadion.templating.directive.factory.XpathDirectiveFactory
+it.extrared.stadion.templating.directive.factory.LowerCaseDirectiveFactory
+it.extrared.stadion.templating.directive.factory.TitleCaseDirectiveFactory
+it.extrared.stadion.templating.directive.factory.UpperCaseDirectiveFactory
+it.extrared.stadion.templating.directive.factory.DateFormatDirectiveFactory
+it.extrared.stadion.templating.directive.factory.DateTimeFormatDirectiveFactory
