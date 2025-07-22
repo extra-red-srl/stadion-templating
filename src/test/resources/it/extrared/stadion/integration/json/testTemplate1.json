@@ -1,5 +1,15 @@
 {
   "name": "{{$jpointer:'/productName'}}",
+  "{{$inline1}}": {
+    "inlined": "inlinedValue"
+  },
+  "{{$inline2}}": [
+    {
+      "{{$inline1}}": {
+        "inlinedFromArray": "inlineValue2"
+      }
+    }
+  ],
   "manufacturer": {
     "$ctx": "{{$jpointer:'/producer'}}",
     "contactDetails": {

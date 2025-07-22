@@ -29,7 +29,8 @@ public class DirectiveParser {
 
     private SingleDirectiveParser buildParsersChain() {
         PropertyNameParser pnParser = new PropertyNameParser();
-        FunctionParser functionParser = new FunctionParser(pnParser);
+        InlineParser inlineParser = new InlineParser(pnParser);
+        FunctionParser functionParser = new FunctionParser(inlineParser);
         LiteralParser literalParser = new LiteralParser(functionParser);
         return new FilterParser(literalParser);
     }
