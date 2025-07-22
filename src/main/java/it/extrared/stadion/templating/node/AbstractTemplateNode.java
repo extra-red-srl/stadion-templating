@@ -14,6 +14,8 @@ import java.util.Map;
  */
 public abstract class AbstractTemplateNode implements TemplateNode {
 
+    protected static final String PARENT_INLINE = "parent_inline";
+
     protected LinkedList<TemplateNode> nodes;
 
     protected TemplateDirective nodeName;

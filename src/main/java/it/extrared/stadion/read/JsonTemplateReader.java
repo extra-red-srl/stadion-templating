@@ -20,22 +20,17 @@ import it.extrared.stadion.templating.node.StaticNode;
 import it.extrared.stadion.templating.node.TemplateNode;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 
 public class JsonTemplateReader extends AbsractTemplateReader {
 
-    private DirectiveParser directiveParser;
-    private Map<String, Object> extraData;
-    private JsonParser jsonParser;
+    private final DirectiveParser directiveParser;
 
-    private JsonParser jParser;
+    private final JsonParser jParser;
 
     public JsonTemplateReader(InputStream inputStream) throws IOException {
         super();
         this.directiveParser = new DirectiveParser();
-        this.extraData = Collections.emptyMap();
         JsonFactory factory = new JsonFactory();
         factory.enable(JsonParser.Feature.ALLOW_COMMENTS);
         try {
@@ -114,7 +109,7 @@ public class JsonTemplateReader extends AbsractTemplateReader {
     private void fixScopeForArray(CollectionNode collectionNode) {
         List<TemplateNode> children = collectionNode.getChildren();
         if (!children.isEmpty()) {
-            TemplateNode first = children.get(0);
+            TemplateNode first = children.getFirst();
             if (first instanceof ObjectNode && first.getChildren().isEmpty()) {
                 ContextNode contextNode = (ContextNode) first;
                 collectionNode.setCtxProperty(contextNode.getCtxProperty());
