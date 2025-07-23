@@ -1,6 +1,6 @@
 package it.extrared.stadion.templating.node;
 
-import static it.extrared.stadion.utils.CommonUtils.tryIterator;
+import static it.extrared.stadion.utils.CommonUtils.tryCollection;
 
 import it.extrared.stadion.log.LogWriter;
 import it.extrared.stadion.log.LogWriters;
@@ -8,7 +8,7 @@ import it.extrared.stadion.templating.directive.TemplateDirective;
 import it.extrared.stadion.write.OutputWriter;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Iterator;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -58,15 +58,15 @@ public abstract class ContextNode extends AbstractTemplateNode {
      */
     protected Object updateContext(Object object) {
         if (ctxProperty == null) return object;
-        Iterator<?> iterator = tryIterator(object);
+        Collection<?> coll = tryCollection(object);
         Object result = null;
-        if (iterator != null) {
+        if (coll != null) {
             List<Object> contexts = new ArrayList<>();
-            while (iterator.hasNext()) {
-                Object newCtx = ctxProperty.run(iterator.next());
+            for (Object val : coll) {
+                Object newCtx = ctxProperty.run(val);
                 if (newCtx != null) contexts.add(newCtx);
             }
-            if (contexts.size() == 1) result = contexts.get(0);
+            if (contexts.size() == 1) result = contexts.getFirst();
             else result = contexts;
         } else {
             result = ctxProperty.run(object);

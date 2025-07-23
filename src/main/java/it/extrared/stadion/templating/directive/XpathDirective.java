@@ -2,6 +2,7 @@ package it.extrared.stadion.templating.directive;
 
 import static org.w3c.dom.Node.ATTRIBUTE_NODE;
 
+import it.extrared.stadion.utils.CommonUtils;
 import it.extrared.stadion.utils.XmlUtils;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
@@ -34,7 +35,7 @@ public class XpathDirective extends FunctionDirective {
                 if (!node.hasChildNodes() || node.getNodeType() == ATTRIBUTE_NODE)
                     return XmlUtils.covertText(node.getTextContent());
                 return node;
-            } else return new XmlNodeIterator(nodeList);
+            } else return CommonUtils.toList(new XmlNodeIterator(nodeList));
         } catch (XPathExpressionException e) {
             throw new RuntimeException(e);
         }

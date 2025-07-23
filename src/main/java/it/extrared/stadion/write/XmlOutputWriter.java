@@ -10,7 +10,6 @@ import java.time.temporal.TemporalAccessor;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
-import java.util.Iterator;
 import java.util.Map;
 import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamException;
@@ -80,9 +79,9 @@ public class XmlOutputWriter implements OutputWriter {
     public void writeValue(Object value, Map<String, Object> extraData) throws IOException {
         if (isXmlAttribute(extraData)) writeAttribute(value);
         else {
-            Iterator<?> iterator = asIterator(value);
-            if (iterator != null)
-                while (iterator.hasNext()) writeValueInternal(iterator.next(), extraData);
+            Collection<?> collection = CommonUtils.tryCollection(value);
+            if (collection != null)
+                for (Object val : collection) writeValueInternal(val, extraData);
             else writeValueInternal(value, extraData);
         }
     }
@@ -124,13 +123,6 @@ public class XmlOutputWriter implements OutputWriter {
         } catch (XMLStreamException e) {
             throw new IOException(e);
         }
-    }
-
-    private Iterator<?> asIterator(Object value) {
-        Iterator<?> result = null;
-        if (value instanceof Collection<?>) result = ((Collection<?>) value).iterator();
-        else if (value instanceof Iterator<?>) result = (Iterator<?>) value;
-        return result;
     }
 
     @Override

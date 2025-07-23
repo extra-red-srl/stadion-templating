@@ -1,12 +1,12 @@
 package it.extrared.stadion.templating.node;
 
-import static it.extrared.stadion.utils.CommonUtils.tryIterator;
+import static it.extrared.stadion.utils.CommonUtils.tryCollection;
 
 import it.extrared.stadion.templating.directive.TemplateDirective;
 import it.extrared.stadion.templating.directive.parser.InlineParser;
 import it.extrared.stadion.write.OutputWriter;
 import java.io.IOException;
-import java.util.Iterator;
+import java.util.Collection;
 import java.util.Objects;
 
 /** A {@link TemplateNode} representing a section of the template that represent a JSON Array. */
@@ -17,10 +17,9 @@ public class CollectionNode extends ContextNode {
 
     @Override
     public void apply(Object object, OutputWriter writer) throws IOException {
-        Iterator<?> iterator = tryIterator(object);
-        if (iterator != null) {
-            while (iterator.hasNext()) {
-                Object val = iterator.next();
+        Collection<?> collection = tryCollection(object);
+        if (collection != null) {
+            for (Object val : collection) {
                 evaluateSingle(val, writer);
             }
         } else {
@@ -40,10 +39,9 @@ public class CollectionNode extends ContextNode {
             object = updateContext(object);
             for (TemplateNode node : getChildren()) {
                 node.addExtraData(PARENT_INLINE, inline);
-                Iterator<?> iterator = tryIterator(object);
-                if (iterator != null) {
-                    while (iterator.hasNext()) {
-                        Object val = iterator.next();
+                Collection<?> coll = tryCollection(object);
+                if (coll != null) {
+                    for (Object val : coll) {
                         node.apply(val, writer);
                     }
                 } else {
