@@ -8,10 +8,10 @@ import java.time.Instant;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalAccessor;
-import java.util.Collection;
-import java.util.Date;
-import java.util.Iterator;
+import java.util.*;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 public class CommonUtils {
 
@@ -63,13 +63,20 @@ public class CommonUtils {
      * @param o the evaluation context.
      * @return the evaluation context as a Collection if it is as such or null.
      */
-    public static Iterator<?> tryIterator(Object o) {
-        Iterator<?> result = null;
-        if (o instanceof ArrayNode) result = ((ArrayNode) o).iterator();
-        else if (o instanceof Collection<?>) result = ((Collection<?>) o).iterator();
-        else if (o instanceof Iterator<?>) result = (Iterator<?>) o;
-        else if (o != null && o.getClass().isArray()) result = Stream.of((Object[]) o).iterator();
-        if (result != null) LOG.debug("The current evaluation context is a collection.");
+    public static Collection<?> tryCollection(Object o) {
+        Collection<?> result = null;
+        if (o instanceof ArrayNode) result = toList(((ArrayNode) o).iterator());
+        else if (o instanceof Collection<?>) result = ((Collection<?>) o);
+        else if (o instanceof Iterator<?>) result = toList((Iterator<?>) o);
+        else if (o != null && o.getClass().isArray()) result = Stream.of((Object[]) o).toList();
+        if (result != null) {
+            LOG.debug("The current evaluation context is a collection.");
+        }
         return result;
+    }
+
+    public static List<?> toList(Iterator<?> iterator) {
+        return StreamSupport.stream(Spliterators.spliteratorUnknownSize(iterator, 0), false)
+                .collect(Collectors.toList());
     }
 }

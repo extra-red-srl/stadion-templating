@@ -3,6 +3,7 @@ package it.extrared.stadion.templating.directive;
 import com.fasterxml.jackson.core.JsonPointer;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ValueNode;
+import it.extrared.stadion.utils.CommonUtils;
 import java.io.IOException;
 
 public class JsonPointerDirective extends FunctionDirective {
@@ -20,7 +21,8 @@ public class JsonPointerDirective extends FunctionDirective {
             Object result;
             if (node.isMissingNode() || node.isNull()) result = null;
             else if (node.isValueNode()) result = toValue((ValueNode) node);
-            else if (node.isArray()) result = new JsonNodeIterator(node.iterator());
+            else if (node.isArray())
+                result = CommonUtils.toList(new JsonNodeIterator(node.iterator()));
             else result = node;
             return result;
         } else {
