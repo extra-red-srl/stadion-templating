@@ -9,7 +9,9 @@ import it.extrared.stadion.templating.directive.DirectiveProvider;
 import it.extrared.stadion.templating.directive.TemplateDirective;
 import it.extrared.stadion.templating.directive.factory.DirectiveInfo;
 import it.extrared.stadion.templating.directive.factory.TemplateDirectiveFactory;
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
@@ -18,7 +20,7 @@ public class FunctionParser extends ChainingSingleDirectiveParser {
 
     private static final DirectiveProvider PROVIDER = new DirectiveProvider();
 
-    private static final String FUN_PARAM_SEP = ":";
+    private static final String FUN_PARAM_SEP = "/'[^']*'|[^:]+/g";
 
     private static final String FUN_STARTER = "\\$";
 
@@ -57,7 +59,7 @@ public class FunctionParser extends ChainingSingleDirectiveParser {
             Object[] objparams;
             if (!params.isBlank())
                 objparams =
-                        Stream.of(params.split(FUN_PARAM_SEP))
+                        Stream.of(splitUnquoted(params, ':'))
                                 .filter(s -> hasText(s))
                                 .map(s -> unwrapWhiteSpace(s))
                                 .map(v -> parser.parse(v))
@@ -71,5 +73,25 @@ public class FunctionParser extends ChainingSingleDirectiveParser {
         if (result == null) result = super.parse(value);
         LOG.debug("Directive %s result in a function.".formatted(value));
         return result;
+    }
+
+    String[] splitUnquoted(String str, char sep) {
+        List<String> tokens = new ArrayList<>();
+        StringBuilder current = new StringBuilder();
+        boolean inQuotes = false;
+
+        for (char c : str.toCharArray()) {
+            if (c == '\'') {
+                inQuotes = !inQuotes;
+                current.append(c);
+            } else if (c == sep && !inQuotes) {
+                tokens.add(current.toString());
+                current = new StringBuilder();
+            } else {
+                current.append(c);
+            }
+        }
+        tokens.add(current.toString());
+        return tokens.toArray(String[]::new);
     }
 }

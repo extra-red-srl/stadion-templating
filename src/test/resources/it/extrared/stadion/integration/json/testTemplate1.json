@@ -1,5 +1,5 @@
 {
-  "name": "{{$jpointer:'/productName'}}",
+  "name": "{{$jpointer:'/productName' | $replace:'p:2:':''}}",
   "{{$inline1}}": {
     "inlined": "inlinedValue"
   },
