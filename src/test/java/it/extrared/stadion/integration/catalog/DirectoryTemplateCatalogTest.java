@@ -46,7 +46,8 @@ public class DirectoryTemplateCatalogTest extends StadionIntegrationTest {
 
     @Override
     protected byte[] resourceAsBytes(String resName) throws IOException {
-        try (InputStream is = getClass().getResourceAsStream("/templates/".concat(resName))) {
+        try (InputStream is =
+                getClass().getResourceAsStream("/stadion-templates/".concat(resName))) {
             if (is != null) {
                 return is.readAllBytes();
             }

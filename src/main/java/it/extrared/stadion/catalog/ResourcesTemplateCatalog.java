@@ -4,7 +4,6 @@ import static it.extrared.stadion.catalog.FilesUtils.asMetadata;
 import static it.extrared.stadion.catalog.FilesUtils.toPredicate;
 
 import it.extrared.stadion.exceptions.InvalidTemplateException;
-import it.extrared.stadion.exceptions.UnsupportedMediaTypeException;
 import it.extrared.stadion.formats.TemplateType;
 import java.io.IOException;
 import java.io.InputStream;
@@ -18,27 +17,27 @@ import java.util.stream.Stream;
 
 public class ResourcesTemplateCatalog extends AbstractTemplateCatalog<String> {
 
-    private static final String TEMPLATES_DIR = "/templates/";
+    private static final String TEMPLATES_DIR = "/stadion-templates";
 
     @Override
-    protected InputStream getTemplateStream(String s)
-            throws UnsupportedMediaTypeException, IOException {
-        return getClass().getResourceAsStream(TEMPLATES_DIR.concat(s));
+    protected InputStream getTemplateStream(String s) throws IOException {
+        return getClass().getResourceAsStream(TEMPLATES_DIR + "/" + s);
     }
 
     @Override
     protected InputStream getTemplateStream(String templateName, TemplateType templateType) {
         return getClass()
                 .getResourceAsStream(
-                        TEMPLATES_DIR.concat(
-                                templateName
+                        TEMPLATES_DIR
+                                + "/"
+                                + templateName
                                         .concat(".")
-                                        .concat(templateType.name().toLowerCase())));
+                                        .concat(templateType.name().toLowerCase()));
     }
 
     @Override
     public byte[] loadTemplateContent(String s) {
-        try (InputStream is = getClass().getResourceAsStream(TEMPLATES_DIR.concat(s))) {
+        try (InputStream is = getTemplateStream(s)) {
             assert is != null;
             return is.readAllBytes();
         } catch (IOException e) {
@@ -56,7 +55,7 @@ public class ResourcesTemplateCatalog extends AbstractTemplateCatalog<String> {
     @Override
     public TemplateMetadata<String> findOne(String s) {
         try {
-            URL resource = getClass().getResource(TEMPLATES_DIR.concat(s));
+            URL resource = getClass().getResource(TEMPLATES_DIR + "/" + s);
             if (resource != null) {
                 Path path = Paths.get(resource.toURI());
                 if (Files.exists(path)) {
@@ -79,7 +78,7 @@ public class ResourcesTemplateCatalog extends AbstractTemplateCatalog<String> {
         try (Stream<Path> paths =
                 Files.list(
                         Paths.get(
-                                Objects.requireNonNull(getClass().getResource("/templates"))
+                                Objects.requireNonNull(getClass().getResource(TEMPLATES_DIR))
                                         .toURI()))) {
             return paths.filter(p -> toPredicate(searchParams).test(p))
                     .map(p -> asMetadata(p.getFileName().toString()))

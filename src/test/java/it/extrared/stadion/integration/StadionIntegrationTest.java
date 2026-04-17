@@ -20,7 +20,7 @@ public abstract class StadionIntegrationTest {
 
     @BeforeEach
     public void open() throws IOException {
-        this.fileSystem = MemoryFileSystemBuilder.newEmpty().build("templates");
+        this.fileSystem = MemoryFileSystemBuilder.newEmpty().build("stadion-templates");
         this.root = fileSystem.getPath("root");
         createDirectoryIfNotExists(root, root.getFileName().toString());
     }
