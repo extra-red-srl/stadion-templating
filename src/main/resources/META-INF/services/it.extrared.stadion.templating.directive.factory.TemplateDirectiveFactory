@@ -9,3 +9,5 @@ it.extrared.stadion.templating.directive.factory.StrReplaceFactory
 it.extrared.stadion.templating.directive.factory.ToDoubleFactory
 it.extrared.stadion.templating.directive.factory.ToIntFactory
 it.extrared.stadion.templating.directive.factory.ToStringFactory
+it.extrared.stadion.templating.directive.factory.IfThenElseDirectiveFactory
+it.extrared.stadion.templating.directive.factory.ThisDirectiveFactory
