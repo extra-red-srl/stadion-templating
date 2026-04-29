@@ -1,7 +1,7 @@
 package it.extrared.stadion.templating.directive;
 
 import it.extrared.stadion.templating.directive.parser.DirectiveParser;
-import it.extrared.stadion.templating.directive.parser.FilterParser;
+import it.extrared.stadion.templating.directive.parser.SingleDirectiveParser;
 
 public class IfThenElseDirective extends FunctionDirective {
 
@@ -10,8 +10,8 @@ public class IfThenElseDirective extends FunctionDirective {
     private final TemplateDirective elseF;
 
     public IfThenElseDirective(String filter, String then, String elseF) {
-        DirectiveParser directiveParser = new DirectiveParser();
-        this.filter = new FilterParser(null).parse(filter);
+        SingleDirectiveParser directiveParser = new DirectiveParser().getParserChain();
+        this.filter = directiveParser.parse(filter);
         this.then = directiveParser.parse(then);
         this.elseF = directiveParser.parse(elseF);
     }

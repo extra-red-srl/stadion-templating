@@ -97,11 +97,10 @@ public class FilterParser extends ChainingSingleDirectiveParser {
                     FACTORIES.keySet().stream()
                             .map(
                                     k -> {
-                                        // regex matching white space then $
                                         StringBuilder sb = new StringBuilder();
-                                        if (hasArguments(k)) sb.append("\\s");
+                                        if (hasArguments(k)) sb.append("(\\s|^)");
                                         sb.append("\\$").append(k);
-                                        if (hasArguments(k)) sb.append("\\s");
+                                        if (hasArguments(k)) sb.append("(\\s|$)");
                                         return sb.toString();
                                     })
                             .collect(Collectors.joining("|"))

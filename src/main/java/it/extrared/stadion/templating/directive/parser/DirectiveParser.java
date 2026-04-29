@@ -115,4 +115,8 @@ public class DirectiveParser {
         if (directives.length > 1) return new PipeDirective(directives);
         return directives[0];
     }
+
+    public SingleDirectiveParser getParserChain() {
+        return parserChain;
+    }
 }

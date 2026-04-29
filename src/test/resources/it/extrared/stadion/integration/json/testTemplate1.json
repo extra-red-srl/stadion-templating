@@ -28,7 +28,7 @@
     {
       "$if": "{{$jpointer:'/concentration' $gte 1}}",
       "materialName": "{{$jpointer:'/name'}} - {{$jpointer:'/symbol'}}",
-      "concentration": "{{$jpointer:'/concentration'}}"
+      "concentration": "{{$if_then_else:'$jpointer:'/concentration' $null':'1':'$jpointer:'/concentration''}}"
     }
   ],
   "performance": {
