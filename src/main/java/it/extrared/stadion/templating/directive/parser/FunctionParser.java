@@ -20,8 +20,6 @@ public class FunctionParser extends ChainingSingleDirectiveParser {
 
     private static final DirectiveProvider PROVIDER = new DirectiveProvider();
 
-    private static final String FUN_PARAM_SEP = "/'[^']*'|[^:]+/g";
-
     private static final String FUN_STARTER = "\\$";
 
     static final Pattern DIRECTIVES_FUN_PATTERN;
