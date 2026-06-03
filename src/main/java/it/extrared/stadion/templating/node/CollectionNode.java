@@ -16,7 +16,8 @@ public class CollectionNode extends ContextNode {
     }
 
     @Override
-    public void apply(Object object, OutputWriter writer) throws IOException {
+    public void apply(Object object, OutputWriter writer, NodeExecutionContext ctx)
+            throws IOException {
         Collection<?> collection = tryCollection(object);
         if (collection != null) {
             for (Object val : collection) {
@@ -37,15 +38,15 @@ public class CollectionNode extends ContextNode {
             }
             if (!inline) writer.startCollection(extraData);
             object = updateContext(object);
+            NodeExecutionContext childCtx = NodeExecutionContext.ROOT.withParentInline(inline);
             for (TemplateNode node : getChildren()) {
-                node.addExtraData(PARENT_INLINE, inline);
                 Collection<?> coll = tryCollection(object);
                 if (coll != null) {
                     for (Object val : coll) {
-                        node.apply(val, writer);
+                        node.apply(val, writer, childCtx);
                     }
                 } else {
-                    node.apply(object, writer);
+                    node.apply(object, writer, childCtx);
                 }
             }
             if (!inline) writer.endCollection(extraData);

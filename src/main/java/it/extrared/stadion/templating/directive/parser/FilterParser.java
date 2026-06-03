@@ -33,7 +33,7 @@ import java.util.stream.Collectors;
  */
 public class FilterParser extends ChainingSingleDirectiveParser {
 
-    private final Map<String, FilterFactory> FACTORIES =
+    private static final Map<String, FilterFactory> FACTORIES =
             Map.ofEntries(
                     new AbstractMap.SimpleImmutableEntry<>(
                             "and",
@@ -92,7 +92,7 @@ public class FilterParser extends ChainingSingleDirectiveParser {
                     new AbstractMap.SimpleImmutableEntry<>("isJSON", (params -> new IsJSON())),
                     new AbstractMap.SimpleImmutableEntry<>("isXML", (params -> new IsXML())));
 
-    private final Pattern FILTER_PATTERN =
+    private static final Pattern FILTER_PATTERN =
             Pattern.compile(
                     FACTORIES.keySet().stream()
                             .map(
@@ -106,7 +106,7 @@ public class FilterParser extends ChainingSingleDirectiveParser {
                             .collect(Collectors.joining("|"))
                             .concat("|\\s\\$!"));
 
-    private SingleDirectiveParser innerParser;
+    private final SingleDirectiveParser innerParser;
 
     private static final String LEFT_PAR = "(";
 
@@ -116,7 +116,7 @@ public class FilterParser extends ChainingSingleDirectiveParser {
 
     public FilterParser(SingleDirectiveParser next) {
         super(next);
-        this.innerParser = new FunctionParser(new LiteralParser(new PropertyNameParser()));
+        this.innerParser = DirectiveParser.buildParameterChain();
     }
 
     @Override

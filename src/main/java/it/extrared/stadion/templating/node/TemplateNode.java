@@ -15,9 +15,15 @@ public interface TemplateNode {
      *
      * @param object the context of the evaluation (the pojos that are being serialized).
      * @param writer the json writer.
+     * @param ctx immutable runtime context propagated down the node tree.
      * @throws IOException
      */
-    void apply(Object object, OutputWriter writer) throws IOException;
+    void apply(Object object, OutputWriter writer, NodeExecutionContext ctx) throws IOException;
+
+    /** Convenience overload that starts execution with a root {@link NodeExecutionContext}. */
+    default void apply(Object object, OutputWriter writer) throws IOException {
+        apply(object, writer, NodeExecutionContext.ROOT);
+    }
 
     /**
      * @return the children of this node if present.

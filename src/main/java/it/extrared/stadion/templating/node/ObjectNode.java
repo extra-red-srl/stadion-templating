@@ -17,10 +17,11 @@ public class ObjectNode extends ContextNode {
     }
 
     @Override
-    public void apply(Object object, OutputWriter writer) throws IOException {
+    public void apply(Object object, OutputWriter writer, NodeExecutionContext ctx)
+            throws IOException {
         if (canWrite(object)) {
             String strKey = null;
-            boolean inline = isInlineParent();
+            boolean inline = ctx.parentInline();
             if (nodeName != null) {
                 strKey = (String) nodeName.run(object);
                 inline = Objects.equals(strKey, InlineParser.INLINE);
@@ -31,16 +32,12 @@ public class ObjectNode extends ContextNode {
             for (TemplateNode node : getChildren()) {
                 Collection<?> coll = tryCollection(object);
                 if (coll != null) {
-                    for (Object o : coll) node.apply(o, writer);
+                    for (Object o : coll) node.apply(o, writer, NodeExecutionContext.ROOT);
                 } else {
-                    node.apply(object, writer);
+                    node.apply(object, writer, NodeExecutionContext.ROOT);
                 }
             }
             if (!inline) writer.endElement(extraData);
         }
-    }
-
-    private Boolean isInlineParent() {
-        return (Boolean) extraData.getOrDefault(PARENT_INLINE, false);
     }
 }

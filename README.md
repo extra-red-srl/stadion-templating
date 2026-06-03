@@ -1,31 +1,84 @@
 # Stadion Templating
 
-### Template Directives
+A Java templating engine that applies JSON or XML templates against Java POJOs, JSON documents, or XML documents to
+produce JSON or XML output. Multiple input sources can be combined in a single template execution.
 
-Below is presented a template example for a JSON-LD document:
+## Why Stadion Templating?
+
+- **WYSIWYG templates** - the template is a valid JSON (or XML) document with the same structure as the desired output.
+  No mental mapping between a transformation DSL and the result: what you write is what you get.
+- **Simpler than Jolt** - Jolt's spec-based transformations require learning a dedicated DSL with non-obvious
+  semantics (`shift`, `default`, `modify`, `cardinality`, …). Stadion templates are plain JSON with `{{directive}}`
+  placeholders, readable and editable without specialist knowledge. Missing or null values are handled inline via
+  `$if_then_else` and the `$null` filter, covering the most common `default`/`cardinality` use cases.
+- **Heterogeneous input in a single pass** - a single template execution can draw from multiple sources simultaneously
+  (e.g. a JSON document and an XML document), with `$isJSON` / `$isXML` guards to route each section to the right
+  source. Orchestrating this with Jolt, XSLT, or any single-source engine requires external glue code.
+- **Familiar pipe syntax** - the `{{value | $function:arg1:arg2}}` notation mirrors Angular pipes — both the pipe
+  operator `|` and the colon-separated argument syntax are identical. Frontend developers can read and write Stadion
+  templates without any prior knowledge of the engine.
+
+## Supported input/output combinations
+
+| Input                  | Output |
+|------------------------|--------|
+| Java POJO              | JSON   |
+| Java POJO              | XML    |
+| JSON                   | JSON   |
+| JSON                   | XML    |
+| XML                    | JSON   |
+| XML                    | XML    |
+| JSON + XML (composite) | JSON   |
+| JSON + XML (composite) | XML    |
+
+## Quick start
+
+```java
+TemplateCatalog<String> catalog =
+        new CachingTemplateCatalog<>(new DirectoryTemplateCatalog(templatesPath));
+TemplatingFacade<String> facade = new TemplatingFacadeImpl<>(catalog);
+
+facade.applyTemplateOnPojo(templateId, MediaType.A_JSON, outputStream, myPojo);
+
+facade.applyTemplate(templateId, MediaType.A_JSON, outputStream, MediaType.A_JSON, jsonInputStream);
+
+facade.applyTemplate(templateId, MediaType.A_JSON, outputStream, MediaType.A_XML, xmlInputStream);
+
+InputData xmlInput  = InputData.builder().mediaType(MediaType.A_XML).input(xmlStream).build();
+InputData jsonInput = InputData.builder().mediaType(MediaType.A_JSON).input(jsonStream).build();
+facade.applyTemplate(templateId, MediaType.A_JSON, outputStream, xmlInput, jsonInput);
+```
+
+## Template Directives
+
+A template is a JSON (or XML) document where directives have been placed to drive the transformation.
+A directive is always wrapped in double braces: `{{directive}}` and can appear both as a field name and as a field value.
+Multiple directives can be piped together with `|` so the output of the left-hand side becomes the input of the
+right-hand side: `{{opened | $d_fmt:'dd/MM/yyyy':'yyyy-MM-dd'}}`.
+A directive can also be embedded inside a static string: `"Restaurant: {{name}}"`.
+
+The engine determines the evaluation context as follows:
+
+- **Array in the template** if the current context is a collection, the template object inside the array is evaluated
+  for each element. Otherwise the single object is passed through.
+- **Object in the template** if the context is a collection *and* the field name is dynamic (e.g. `"restaurant.{{id}}"`),
+  the collection is iterated to avoid duplicate field names. If the field name is static, the collection is passed down
+  as-is.
+- **`$ctx`** - explicitly switches the evaluation context for the enclosing section. See [Context](#context) below.
+
+Below is a complete template example for a JSON-LD document:
 
 ```json
 {
   "@context": {
-    "schema": "http://schema.org/",
-    "Restaurant": "schema:Restaurant",
-    "cuisine": "schema:servesCuisine",
-    "menu": "schema:hasMenu",
-    "items": {
-      "@id": "schema:hasMenuItem",
-      "@container": "@set"
-    },
-    "name": "schema:name",
-    "address": "schema:address",
-    "owner": "schema:founder",
-    "foundingDate": "schema:foundingDate"
+    "schema": "http://schema.org/"
   },
   "restaurants": {
     "restaurant.{{id}}": {
-      "@type": "schema:Restaraunt",
-      "foundingDate": "{{opened | $datef:'dd/MM/yyyy'}}",
+      "@type": "schema:Restaurant",
+      "foundingDate": "{{opened | $d_fmt:'dd/MM/yyyy':'yyyy-MM-dd'}}",
       "name": "{{name}}",
-      "address": "{{'INDIRIZZO' | $lowercase}} {{address | $uppercase}}",
+      "address": "{{'INDIRIZZO' | $lower}} {{address | $upper}}",
       "owner": {
         "@type": "schema:Person",
         "$ctx": "{{owner}}",
@@ -49,169 +102,105 @@ Below is presented a template example for a JSON-LD document:
 }
 ```
 
-The extension follows a what you see is what you get approach so a JSON/JSON-LD template is actually a real JSON
-document where
-directives have been used in order to allow the templating engine to properly fill it. A template directive is always
-wrapped
-inside double graph eg. `{{name}}` and can be used both on a field name and on a field value. Multiple directive can be piped together so that the result of the leftmost
-directive is passed to the next directive
-until a pipe is ended eg. `{{date ! datef:'dd/MM/yyyy'}}`: in this case the value of a property named date is passed to
-a function named `datef` with one argument
-`dd/MM/yyyy`. A directive can be specified as part of a string so that the result of the directive evaluation will be
-composed with the string enclosing it eg. `"my string with a directive in it {{someproperty}}"`.
-Each directive is evaluated against the context that is the object returned by the resource method to which the template
-annotation has benn applied. In order to determine the context properly the template engine works as follow:
-- every time a JSON array is started in the template, the engine will check if the context is a collection/array or is a
-  single object. If it is a collection the directives specified in the object inside the array (in the example above the directives inside the second JSON objects into the items array)
-  will be evaluated for each element in the collection/array. Otherwise, the object is passed down as it is.
-- every time a JSON object is started in the template, the engine will check again if the context is a collection/array or not.
-  if it is, the engine will check as well if the field name of the object is dynamic or not (eg. the `restaurant{{id}}` field name in the example above is dynamic).
-  If it is then the collection will be iterated. This additional check is done to reduce to the minimum the possibility to have
-  several JSON object with same field name thus and invalid JSON document. If the field name it is not dynamic the list will be passed
-  as it is down in the template.
-- The current context for a specific template section can be manipulated via the $ctx property. See below for details about it.
+---
 
-Below the various types of directives are detailed.
-`
-#### Property Interpolation
+### Property Interpolation
 
-Property interpolation allows to access the value of a field of Java object eg. if a class `Restaurant` has a
-field `name`
-the directive `{{name}}` will produce with the value of the name property. This directive needs getters to be defined
-for all the property
-that needs to be accessed.
-The result of a property interpolation can be placed inside a static string
-eg. `"Restaurnt name:{{name}}"`.
-A property might be composed by several part to traverse an object graph.
-As an example lets assume that we are templating a Restaurant POJO which has a field of type Menu that in turns has a
-list of menù items
-according to the classes below:
+Accesses a field of a Java object via its getter. `{{name}}` returns the value of the `getName()` method.
+Getters must be defined for all accessed fields.
+
+A dotted path traverses an object graph: `{{menu.entries.[0].name}}` navigates from the root object to
+`getMenu()`, then `getEntries()`, then takes the element at index 0, then calls `getName()`.
+The `[N]` notation accesses the element at index N (0-based) of any `List`.
 
 ```java
 public class Restaurant {
-
     private Long id;
-
     private String name;
-
     private Owner owner;
-
     private String address;
-
     private Menu menu;
-
     private LocalDate opened;
-
     // getters and setters
 }
-```
 
-```java
-public class Restaurant {
-
-    private Long id;
-
+public class Owner {
     private String name;
-
-    private Owner owner;
-
-    private String address;
-
-    private Menu menu;
-
-    private LocalDate opened;
-
+    private String surname;
     // getters and setters
 }
-```
 
-```java
 public class Menu {
-
     private double coverPrice;
-
     private List<Entry> entries;
-
     // getters and setters
 }
-```
 
-```java
 public class Entry {
-
     private String name;
-
     private Double price;
-
     // getters and setters
 }
 ```
 
-It is possible to start from the restaurant and reach the price field inside and object of type Entry with the following
-property:
-`{{menu.entries.[0].name}}`. The property name will pick up the name of the first menu entry in the list held by the
-menu object of
-the restaurant object. The `[0]` property part is an accessor to retrieve the element of a list at a specified index (0
-based).
+For JSON and XML input, use `$jpointer` and `$xpath` respectively instead of property paths.
 
-Alternatively to property interpolation, jpointer and xpath can be used if the input to the template is a json or an xml.
+---
 
-#### Literals
+### Literals
 
-Literals are simply literals values. The supported literals are:
+Literal values can be used as the starting value of a pipe or as function arguments.
 
-* Strings in the form `'my string'`;
-* Booleans.
-* Integers.
-* Doubles.
+| Type    | Syntax              | Example        |
+|---------|---------------------|----------------|
+| String  | `'value'`           | `'hello'`      |
+| Boolean | `true` / `false`    | `true`         |
+| Integer | plain number        | `42`           |
+| Double  | number with `.`     | `3.14`         |
 
-Literals usually appears as argument of a Function or as the static input of a pipe.
+---
 
-#### Functions
+### Functions
 
-Functions accept one or more parameters and are usually used in the context of a pipe. A function must be specified in
-the following form:
-`$functionName:arg1:arg2:argN`.
-For example the function `$datef:'dd/MM/yyyy'` formats a date/temporal Java object into a string with the specified
-format. Most of the functions
-must be used in the context of a pipe eg. `{{myDateProp | $datef:'yyyy-MM-dd'}}`: in this case the result of the
-evaluation of a property
-with name `myDateProp`' is passed to the function to format it according to the specified format.
+Functions are invoked as `$functionName:arg1:arg2` and are typically used in pipes.
 
-The following is a list of the available functions:
+| Function                                     | Description                                                           | Parameters | Example                                             |
+|----------------------------------------------|-----------------------------------------------------------------------|------------|-----------------------------------------------------|
+| `$lower`                                     | Lowercases a string                                                   | 0          | `{{name \| $lower}}`                                |
+| `$upper`                                     | Uppercases a string                                                   | 0          | `{{name \| $upper}}`                                |
+| `$titlecase`                                 | Title-cases a string                                                  | 0          | `{{name \| $titlecase}}`                            |
+| `$d_fmt:'srcFmt':'tgtFmt'`                   | Parses a date string with `srcFmt` and reformats it with `tgtFmt`     | 2          | `{{dob \| $d_fmt:'dd/MM/yyyy':'yyyy-MM-dd'}}`       |
+| `$dt_fmt:'srcFmt':'tgtFmt'`                  | Parses a datetime string with `srcFmt` and reformats it with `tgtFmt` | 2          | `{{ts \| $dt_fmt:'dd/MM/yyyy HH:mm':'yyyy-MM-dd'}}` |
+| `$replace:'search':'replacement'`            | Replaces all occurrences of `search` with `replacement`               | 2          | `{{code \| $replace:'p:2:':''}}`                    |
+| `$jpointer:'/path'`                          | Evaluates a JSON Pointer on the current context (JSON input only)     | 1          | `{{$jpointer:'/producer/name'}}`                    |
+| `$xpath:'expr'`                              | Evaluates an XPath expression on the current context (XML input only) | 1          | `{{$xpath:'//producer/name/text()'}}`               |
+| `$if_then_else:'filter':'thenVal':'elseVal'` | Returns `thenVal` if `filter` is true, `elseVal` otherwise            | 3          | `{{$if_then_else:'price $null':'0':'price'}}`       |
+| `$this`                                      | Returns the current context object unchanged                          | 0          | `{{$this}}`                                         |
+| `$int`                                       | Converts the value to an integer                                      | 0          | `{{amount \| $int}}`                                |
+| `$double`                                    | Converts the value to a double                                        | 0          | `{{amount \| $double}}`                             |
+| `$string`                                    | Converts the value to a string                                        | 0          | `{{id \| $string}}`                                 |
 
-| Function name | Description                                                  | Parameters number | Parameters description | Example                               |
-|---------------|--------------------------------------------------------------|-------------------|------------------------|---------------------------------------|
-| $lowecase     | lowercase a string                                           | 0                 |                        | {{mystrprop \| $uppercase}}           |
-| $uppercase    | uppercase a string                                           | 0                 |                        | {{mystrprop \| lowercase}}            |
-| $datef        | formats a date according to the format passed as a parameter | 1                 | The date format        | {{mydateprop \| $datef:'dd/MM/yyyy'}} |
-| $jpointer     | evaluate a json pointer on the input (only for json input).  | 1                 | The json pointer path  | {{$jpointer: '/path/to/value'}}       |
-| $xpath        | evaluate an xpath on the input (only for xml input).         | 1                 | The xpath              | {{$xpath: 'path/to/value/text()'}}    |
+---
 
-#### Context
+### Context
 
-Context is a special directive used to set the context for the property evaluation in a container for child fields. See
-the below JSON
-extracted from the example template above:
+`$ctx` switches the evaluation context for the fields of the enclosing object or array iteration.
 
 ```json
 {
   "$ctx": "{{owner}}",
   "name": "{{name}}",
-  "surname": "{{surname}}",
-  "@type": "schema:Person"
+  "surname": "{{surname}}"
 }
 ```
 
-The above template part basically will set as the context for the evaluation of the fields below the `$ctx` property
-the object contained inside the property `owner` of the object being evaluated.
-Similarly,see the following template part:
+`{{name}}` and `{{surname}}` are evaluated on the `Owner` object, not on the root object.
+
+In an array, `$ctx` switches the context for each iterated element:
 
 ```json
 [
-  {
-    "$ctx": "{{entries}}"
-  },
+  { "$ctx": "{{entries}}" },
   {
     "name": "{{name}}",
     "price": "{{price}}"
@@ -219,21 +208,25 @@ Similarly,see the following template part:
 ]
 ```
 
-Every object in the array of items will be populated using the object inside the property `entries` of the object being
-evaluated.
+---
 
-#### Math
+### Math
 
-The templating engine has math support as well. Inside graph parenthesis of a directive it is possible to place whatever
-math expression eg. `{{ 9 * 3 - (100/2^10)}}` and so on. Property name can be used as variable inside the expression eg.
-`{{some.numeric.prop/some.other.numeric.prop}}`.
+Arithmetic expressions are supported inside `{{ }}`:
 
-#### If
+```
+{{ 9 * 3 - (100 / 2^10) }}
+{{some.numeric.prop / some.other.numeric.prop}}
+```
 
-Filters are directives that allow to control whether or not a piece of the template has to be rendered. Consider the
-following
-template piece:
+---
 
+### If
+
+`$if` controls whether a section of the template is rendered. It can appear on an array context element
+(filters which collection items are output) or on a plain object (renders or skips the whole object).
+
+**Filter array items:**
 ```json
 [
   {
@@ -246,50 +239,134 @@ template piece:
   }
 ]
 ```
-The if field is telling the engine to render an array element only if the price field of the entry is greater then 5.
-Consider now these template piece:
 
+**Conditionally render an object:**
 ```json
 {
-  "scope": "{{owner}}",
+  "$ctx": "{{owner}}",
   "$if": "{{name $!eq 'The name'}}",
   "name": "{{name}}",
-  "surname": "{{surname}}",
-  "@type": "schema:Person"
+  "surname": "{{surname}}"
 }
 ```
 
-The filter in this case is telling the engine to render the entire JSON object only if the name field of the owner is not equal
-to `The name`.
+**Conditionally render a single field value** (filter and value must be in separate `{{ }}`):
+```json
+{
+  "name": "{{name $!eq 'The name'}}{{name}}"
+}
+```
 
-If the filter needs to be applied to a single field the syntax is instead the following:
+---
+
+### Filters
+
+Filters are boolean expressions used inside `$if` or `$if_then_else`. Every filter keyword is prefixed with `$`.
+Negate any filter by inserting `!` after `$`: `$!eq` means "not equal".
+
+| Filter      | Description                                 | Example                                  |
+|-------------|---------------------------------------------|------------------------------------------|
+| `$eq`       | Equal to                                    | `{{strProp $eq 'value'}}`                |
+| `$gt`       | Greater than                                | `{{numProp $gt 5}}`                      |
+| `$gte`      | Greater than or equal to                    | `{{numProp $gte 5}}`                     |
+| `$lt`       | Less than                                   | `{{numProp $lt 5}}`                      |
+| `$lte`      | Less than or equal to                       | `{{numProp $lte 5}}`                     |
+| `$in`       | Value equals one of a comma-separated list  | `{{strProp $in 'a','b','c'}}`            |
+| `$contains` | String contains substring                   | `{{strProp $contains 'sub'}}`            |
+| `$null`     | Value is null                               | `{{prop $null}}`                         |
+| `$isJSON`   | Current context is a JSON node              | `{{$isJSON}}`                            |
+| `$isXML`    | Current context is an XML node              | `{{$isXML}}`                             |
+| `$and`      | Logical AND of two filters                  | `{{strProp $eq 'x' $and numProp $gt 5}}` |
+| `$or`       | Logical OR of two filters                   | `{{strProp $eq 'x' $or numProp $gt 5}}`  |
+
+---
+
+### Inline
+
+When `{{$inlineN}}` (where N is any digit, e.g. `{{$inline1}}`, `{{$inline2}}`) is used as a **field name**, the
+engine suppresses the wrapping object or array boundary and writes its contents directly into the parent level.
+This flattens — or "inlines" — the output of the enclosed section into the surrounding object.
+
+The digit suffix exists only to ensure the template remains valid JSON (object keys must be unique within the same
+object). All inline markers, regardless of their number, behave identically.
+
+**Without inline** — the iterated fields would be nested inside an unnamed array:
+```json
+{
+  "productId": "...",
+  "submodelFields": [
+    { "$ctx": "{{$jpointer:'/submodels'}}"},
+    { "name": "{{$jpointer:'/idShort'}}"}
+  ]
+}
+```
+Output: `{ "productId": "...", "submodelFields": [{"name": "Nameplate"}, {"name": "TechnicalData"}] }`
+
+**With inline** — the fields from each iterated element are written directly at the enclosing object level:
+```json
+{
+  "productId": "...",
+  "{{$inline1}}": [
+    { "$ctx": "{{$jpointer:'/submodels'}}"},
+    {
+      "$if": "{{$jpointer:'/idShort' $eq 'Nameplate'}}",
+      "manufacturerName": "{{$jpointer:'/value'}}"
+    }
+  ]
+}
+```
+Output: `{ "productId": "...", "manufacturerName": "Extrared SRL" }`
+
+Inline sections can be nested to traverse multiple collection levels and flatten their results at any depth:
 
 ```json
 {
-  "scope": "{{owner}}",
-  "name": "{{name $!eq 'The name'}}{{name}}",
-  "surname": "{{surname}}",
-  "@type": "schema:Person"
+  "productId": "{{$jpointer:'/id' | $replace:'urn:uuid:':''}}",
+  "{{$inline1}}": [
+    { "$ctx": "{{$jpointer:'/submodels'}}"},
+    {
+      "$if": "{{$jpointer:'/idShort' $eq 'DigitalProductPassport'}}",
+      "{{$inline2}}": [
+        { "$ctx": "{{$jpointer:'/submodelElements'}}"},
+        {
+          "$if": "{{$jpointer:'/idShort' $eq 'BatchId'}}",
+          "batchId": "{{$jpointer:'/value'}}"
+        }
+      ]
+    }
+  ]
 }
 ```
 
-The property name in this case will appear only if the filter is matched. When using a filter inline it must be always in
-separate graphs from the rest of the directive.
+Output: `{ "productId": "a1b2-...", "batchId": "BATCH-001" }`
 
-The following is a list of supported filters.
+The inner `{{$inline2}}` iterates `submodelElements` and writes matching fields directly into the root object,
+bypassing both the `submodels` and `submodelElements` nesting.
 
-| Filter name | Description                                                                      | Example                                        |
-|-------------|----------------------------------------------------------------------------------|------------------------------------------------|
-| $eq         | equals filter, same as Java ==                                                   | {{strprop $eq 'some string'}}                  |
-| $gt         | greater than filter, same as Java >                                              | {{intprop $gt 5}}                              |
-| $gte        | greater than or equals to filter, same as Java >=                                | {{intprop $gte 5}}                             |
-| $lt         | less than filter, same as Java <                                                 | {{intprop $lt 5}}                              |
-| $lte        | less than or equals to filter, same as Java <=                                   | {{intprop $lte 5}}                             |
-| $in         | in filter, check the left param for equality in one of the right side parameters | {{intprop $in 1,2,3,4,5}}                      |
-| $contains   | check if the left side string value contains the right side string value         | {{strprop $contains 'my string'}}              |
-| $and        | put in and two filters, same as Java &&                                          | {{strprop $eq 'my string' $and intprop $gt 5}} |
-| $or         | put in or two filters, same as Java \|\|                                         | {{strprop $eq 'my string' $or intprop $gt 5}}  |
+---
 
-Note that every filter must always be prefixed with a `$` symbol. Moreover if
-the filter condition must be negated the filter needs to be prefixed with the `!` symbol eg. `$!eq` means not equal to.
+### Composite input and `$isJSON` / `$isXML`
 
+When multiple input sources are passed to `applyTemplate()`, the engine combines them into a list and the template
+receives both. `$isJSON` and `$isXML` allow the template to branch on which source is currently in context,
+making it possible to extract fields from different sources in the same template:
+
+```json
+[
+  {
+    "$if": "{{$isJSON}}",
+    "$ctx": "{{$jpointer:'/composition/materials'}}"
+  },
+  {
+    "$if": "{{$isXML}}",
+    "$ctx": "{{$xpath:'//materials/material'}}"
+  },
+  {
+    "name": "{{name}}",
+    "quantity": "{{quantity}}"
+  }
+]
+```
+
+This template renders material items from a JSON source if the context is JSON, or from an XML source if the context
+is XML - both can be active simultaneously when composite input is used.

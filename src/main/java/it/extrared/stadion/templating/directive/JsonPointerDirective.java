@@ -8,7 +8,7 @@ import java.io.IOException;
 
 public class JsonPointerDirective extends FunctionDirective {
 
-    private JsonPointer jsonPointer;
+    private final JsonPointer jsonPointer;
 
     public JsonPointerDirective(String pointer) {
         this.jsonPointer = JsonPointer.compile(pointer);

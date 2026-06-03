@@ -9,6 +9,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import it.extrared.stadion.TemplatingFacade;
 import it.extrared.stadion.TemplatingFacadeImpl;
+import it.extrared.stadion.catalog.CachingTemplateCatalog;
 import it.extrared.stadion.catalog.DirectoryTemplateCatalog;
 import it.extrared.stadion.catalog.TemplateCatalog;
 import it.extrared.stadion.exceptions.InvalidTemplateException;
@@ -28,7 +29,8 @@ public class JsonOutputIntegrationTest extends StadionIntegrationTest {
     public void testJsonToJsonTemplating()
             throws InvalidTemplateException, IOException, ServiceNotFound {
         String templateName = "testTemplate1";
-        TemplateCatalog<String> templateCatalog = new DirectoryTemplateCatalog(root);
+        TemplateCatalog<String> templateCatalog =
+                new CachingTemplateCatalog<>(new DirectoryTemplateCatalog(root));
         TemplatingFacade<String> facade = new TemplatingFacadeImpl<>(templateCatalog);
         String id = saveTemplate(templateCatalog, templateName, TemplateType.JSON);
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -43,7 +45,8 @@ public class JsonOutputIntegrationTest extends StadionIntegrationTest {
     public void testXmlToJsonTemplating()
             throws InvalidTemplateException, IOException, ServiceNotFound {
         String templateName = "testTemplate2";
-        TemplateCatalog<String> templateCatalog = new DirectoryTemplateCatalog(root);
+        TemplateCatalog<String> templateCatalog =
+                new CachingTemplateCatalog<>(new DirectoryTemplateCatalog(root));
         TemplatingFacade<String> facade = new TemplatingFacadeImpl<>(templateCatalog);
         String id = saveTemplate(templateCatalog, templateName, TemplateType.JSON);
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -58,7 +61,8 @@ public class JsonOutputIntegrationTest extends StadionIntegrationTest {
     public void testCompositeToJsonTemplating()
             throws InvalidTemplateException, IOException, ServiceNotFound {
         String templateName = "testTemplateComposite";
-        TemplateCatalog<String> templateCatalog = new DirectoryTemplateCatalog(root);
+        TemplateCatalog<String> templateCatalog =
+                new CachingTemplateCatalog<>(new DirectoryTemplateCatalog(root));
         TemplatingFacade<String> facade = new TemplatingFacadeImpl<>(templateCatalog);
         String id = saveTemplate(templateCatalog, templateName, TemplateType.JSON);
         ByteArrayOutputStream baos = new ByteArrayOutputStream();

@@ -25,7 +25,8 @@ public class DynamicNode extends AbstractTemplateNode {
     }
 
     @Override
-    public void apply(Object context, OutputWriter writer) throws IOException {
+    public void apply(Object context, OutputWriter writer, NodeExecutionContext ctx)
+            throws IOException {
         if (canWrite(context)) {
             Object value = directive.run(context);
             writer.writeFieldName((String) nodeName.run(context), extraData);

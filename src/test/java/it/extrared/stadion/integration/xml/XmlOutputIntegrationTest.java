@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import it.extrared.stadion.TemplatingFacade;
 import it.extrared.stadion.TemplatingFacadeImpl;
+import it.extrared.stadion.catalog.CachingTemplateCatalog;
 import it.extrared.stadion.catalog.DirectoryTemplateCatalog;
 import it.extrared.stadion.catalog.TemplateCatalog;
 import it.extrared.stadion.exceptions.InvalidTemplateException;
@@ -40,7 +41,8 @@ public class XmlOutputIntegrationTest extends StadionIntegrationTest {
                     ParserConfigurationException,
                     SAXException {
         String templateName = "testTemplate1";
-        TemplateCatalog<String> templateCatalog = new DirectoryTemplateCatalog(root);
+        TemplateCatalog<String> templateCatalog =
+                new CachingTemplateCatalog<>(new DirectoryTemplateCatalog(root));
         TemplatingFacade<String> facade = new TemplatingFacadeImpl<>(templateCatalog);
         String id = saveTemplate(templateCatalog, templateName, TemplateType.XML);
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -60,7 +62,8 @@ public class XmlOutputIntegrationTest extends StadionIntegrationTest {
                     ParserConfigurationException,
                     SAXException {
         String templateName = "testTemplate2";
-        TemplateCatalog<String> templateCatalog = new DirectoryTemplateCatalog(root);
+        TemplateCatalog<String> templateCatalog =
+                new CachingTemplateCatalog<>(new DirectoryTemplateCatalog(root));
         TemplatingFacade<String> facade = new TemplatingFacadeImpl<>(templateCatalog);
         String id = saveTemplate(templateCatalog, templateName, TemplateType.XML);
         ByteArrayOutputStream baos = new ByteArrayOutputStream();

@@ -9,8 +9,7 @@ import java.util.function.Consumer;
 
 public class JsonNodeIterator implements Iterator<Object> {
 
-    private int size;
-    private Iterator<JsonNode> delegate;
+    private final Iterator<JsonNode> delegate;
 
     public JsonNodeIterator(Iterator<JsonNode> iterator) {
         this.delegate = iterator;

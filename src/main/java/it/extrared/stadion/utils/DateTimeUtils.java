@@ -4,7 +4,6 @@ import it.extrared.stadion.log.LogWriter;
 import it.extrared.stadion.log.LogWriters;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 
 public class DateTimeUtils {
 
@@ -12,8 +11,7 @@ public class DateTimeUtils {
 
     public static LocalDate parseDate(String value, String fmt) {
         try {
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern(fmt);
-            return LocalDate.parse(value, formatter);
+            return LocalDate.parse(value, CommonUtils.getFormatter(fmt));
         } catch (Throwable t) {
             String msg = "Error while parsing %s as %s".formatted(value, fmt);
             LOG.error(msg, t);
@@ -23,8 +21,7 @@ public class DateTimeUtils {
 
     public static String formatDate(LocalDate date, String fmt) {
         try {
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern(fmt);
-            return formatter.format(date);
+            return CommonUtils.getFormatter(fmt).format(date);
         } catch (Throwable t) {
             String msg = "Error while formatting date to %s".formatted(fmt);
             LOG.error(msg, t);
@@ -34,8 +31,7 @@ public class DateTimeUtils {
 
     public static LocalDateTime parseDateTime(String value, String fmt) {
         try {
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern(fmt);
-            return LocalDateTime.parse(value, formatter);
+            return LocalDateTime.parse(value, CommonUtils.getFormatter(fmt));
         } catch (Throwable t) {
             String msg = "Error while formatting %s as %s".formatted(value, fmt);
             LOG.error(msg, t);
@@ -45,8 +41,7 @@ public class DateTimeUtils {
 
     public static String formatDateTime(LocalDateTime date, String fmt) {
         try {
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern(fmt);
-            return formatter.format(date);
+            return CommonUtils.getFormatter(fmt).format(date);
         } catch (Throwable t) {
             String msg = "Error while formatting date time as %s".formatted(fmt);
             LOG.error(msg, t);

@@ -1,0 +1,29 @@
+{
+    "restaurantId": "{{id}}",
+    "restaurantName": "{{name | $uppercase}}",
+    "restaurantAddress": "{{address | $lowercase}}",
+    "openedOn": "{{opened | $d_fmt:'yyyy-MM-dd':'dd/MM/yyyy'}}",
+    "owner": {
+        "$ctx": "{{owner}}",
+        "fullName": "{{name}} {{surname}}"
+    },
+    "menuItems": [
+        {
+            "$ctx": "{{menu.entries}}"
+        },
+        {
+            "item": "{{name}}",
+            "price": "{{price}}"
+        }
+    ],
+    "expensiveItems": [
+        {
+            "$ctx": "{{menu.entries}}"
+        },
+        {
+            "$if": "{{price $gte 5.0}}",
+            "item": "{{name}}",
+            "price": "{{price}}"
+        }
+    ]
+}

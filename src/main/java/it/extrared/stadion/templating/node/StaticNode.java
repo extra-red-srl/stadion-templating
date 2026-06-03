@@ -18,7 +18,8 @@ public class StaticNode extends AbstractTemplateNode {
     }
 
     @Override
-    public void apply(Object context, OutputWriter writer) throws IOException {
+    public void apply(Object context, OutputWriter writer, NodeExecutionContext ctx)
+            throws IOException {
         writer.writeFieldName((String) nodeName.run(context), extraData);
         writer.writeValue(value, extraData);
     }

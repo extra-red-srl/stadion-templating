@@ -3,21 +3,36 @@ package it.extrared.stadion.utils;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import it.extrared.stadion.log.LogWriter;
 import it.extrared.stadion.log.LogWriters;
-import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalAccessor;
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.AbstractList;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Date;
+import java.util.Iterator;
+import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
 
 public class CommonUtils {
 
     private static final String DEF_DATE_FORMAT = "yyyy-MM-dd";
 
     private static final LogWriter LOG = LogWriters.getLogger(CommonUtils.class);
+
+    /**
+     * Cache of pre-built {@link DateTimeFormatter} instances keyed by pattern string. {@link
+     * DateTimeFormatter} is immutable and thread-safe, so a single instance per pattern is safe to
+     * share across all threads. Package-visible so {@link DateTimeUtils} can reuse it.
+     */
+    static final ConcurrentHashMap<String, DateTimeFormatter> FORMATTER_CACHE =
+            new ConcurrentHashMap<>();
+
+    static DateTimeFormatter getFormatter(String pattern) {
+        return FORMATTER_CACHE.computeIfAbsent(pattern, DateTimeFormatter::ofPattern);
+    }
 
     public static boolean hasText(String astring) {
         return astring != null && astring.trim().length() > 0;
@@ -28,8 +43,7 @@ public class CommonUtils {
     }
 
     public static String formatDate(String format, Date date) {
-        SimpleDateFormat simpleDateFormat = new SimpleDateFormat(format);
-        return simpleDateFormat.format(date);
+        return getFormatter(format).format(date.toInstant().atZone(ZoneOffset.UTC));
     }
 
     public static String defFormatTemporalAccessor(TemporalAccessor temporalAccessor) {
@@ -37,11 +51,9 @@ public class CommonUtils {
     }
 
     public static String formatTemporalAccessor(String format, TemporalAccessor temporalAccessor) {
-        if (Instant.class.isAssignableFrom(temporalAccessor.getClass()))
-            temporalAccessor =
-                    ((Instant) temporalAccessor).atZone(ZoneOffset.UTC).toLocalDateTime();
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern(format);
-        return formatter.format(TemporalAccessor.class.cast(temporalAccessor));
+        if (temporalAccessor instanceof Instant instant)
+            temporalAccessor = instant.atZone(ZoneOffset.UTC).toLocalDateTime();
+        return getFormatter(format).format(temporalAccessor);
     }
 
     public static String unwrapWhiteSpace(String value) {
@@ -65,9 +77,9 @@ public class CommonUtils {
      */
     public static Collection<?> tryCollection(Object o) {
         Collection<?> result = null;
-        if (o instanceof ArrayNode) result = toList(((ArrayNode) o).iterator());
-        else if (o instanceof Collection<?>) result = ((Collection<?>) o);
-        else if (o instanceof Iterator<?>) result = toList((Iterator<?>) o);
+        if (o instanceof ArrayNode an) result = arrayNodeView(an);
+        else if (o instanceof Collection<?> c) result = c;
+        else if (o instanceof Iterator<?> it) result = toList(it);
         else if (o != null && o.getClass().isArray()) result = Stream.of((Object[]) o).toList();
         if (result != null) {
             LOG.debug("The current evaluation context is a collection.");
@@ -75,8 +87,27 @@ public class CommonUtils {
         return result;
     }
 
+    /**
+     * Returns a live, read-only {@link List} view over an {@link ArrayNode} without copying its
+     * elements. Random access is O(1) via {@link ArrayNode#get(int)}.
+     */
+    private static List<?> arrayNodeView(ArrayNode an) {
+        return new AbstractList<Object>() {
+            @Override
+            public Object get(int index) {
+                return an.get(index);
+            }
+
+            @Override
+            public int size() {
+                return an.size();
+            }
+        };
+    }
+
     public static List<?> toList(Iterator<?> iterator) {
-        return StreamSupport.stream(Spliterators.spliteratorUnknownSize(iterator, 0), false)
-                .collect(Collectors.toList());
+        List<Object> list = new ArrayList<>();
+        iterator.forEachRemaining(list::add);
+        return list;
     }
 }

@@ -35,6 +35,17 @@ public class DirectiveParser {
         return new FilterParser(literalParser);
     }
 
+    /**
+     * Builds the parameter sub-chain used for evaluating filter operands and function arguments:
+     * {@code FunctionParser → LiteralParser → PropertyNameParser}.
+     *
+     * <p>{@link FilterParser} and {@link InlineParser} are intentionally excluded: filter operands
+     * cannot be nested filters, and inline markers are only meaningful at the top level.
+     */
+    static SingleDirectiveParser buildParameterChain() {
+        return new FunctionParser(new LiteralParser(new PropertyNameParser()));
+    }
+
     public TemplateDirective parse(String strDirective) {
         LOG.debug("Parsing template directive %s".formatted(strDirective));
         Matcher matcher = DIRECTIVE_FINDER.matcher(strDirective);
