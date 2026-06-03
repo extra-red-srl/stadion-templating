@@ -91,31 +91,6 @@
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-assembly-plugin</artifactId>
-                <version>3.7.1</version>
-                <configuration>
-                    <descriptorRefs>
-                        <descriptorRef>jar-with-dependencies</descriptorRef>
-                    </descriptorRefs>
-                    <archive>
-                        <manifest>
-                            <addClasspath>true</addClasspath>
-                            <classpathPrefix>lib/</classpathPrefix>
-                        </manifest>
-                    </archive>
-                </configuration>
-                <executions>
-                    <execution>
-                        <id>assemble-all</id>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>single</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>3.5.3</version>
             </plugin>
@@ -172,20 +147,16 @@
             </plugin>
         </plugins>
     </build>
-    <repositories>
-        <repository>
-            <id>gitlab-maven</id>
-            <url>${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/maven</url>
-        </repository>
-    </repositories>
     <distributionManagement>
         <repository>
-            <id>gitlab-maven</id>
-            <url>${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/maven</url>
+            <id>github</id>
+            <name>GitHub Packages</name>
+            <url>https://maven.pkg.github.com/${env.GITHUB_REPOSITORY}</url>
         </repository>
         <snapshotRepository>
-            <id>gitlab-maven</id>
-            <url>${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/maven</url>
+            <id>github</id>
+            <name>GitHub Packages</name>
+            <url>https://maven.pkg.github.com/${env.GITHUB_REPOSITORY}</url>
         </snapshotRepository>
     </distributionManagement>
 </project>

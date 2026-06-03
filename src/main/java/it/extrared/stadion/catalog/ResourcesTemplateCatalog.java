@@ -21,27 +21,29 @@ public class ResourcesTemplateCatalog extends AbstractTemplateCatalog<String> {
 
     @Override
     protected InputStream getTemplateStream(String s) throws IOException {
-        return getClass().getResourceAsStream(TEMPLATES_DIR + "/" + s);
+        InputStream is = getClass().getResourceAsStream(TEMPLATES_DIR + "/" + s);
+        if (is == null) throw new IOException("Template resource not found: " + s);
+        return is;
     }
 
     @Override
-    protected InputStream getTemplateStream(String templateName, TemplateType templateType) {
-        return getClass()
-                .getResourceAsStream(
-                        TEMPLATES_DIR
-                                + "/"
-                                + templateName
-                                        .concat(".")
-                                        .concat(templateType.name().toLowerCase()));
+    protected InputStream getTemplateStream(String templateName, TemplateType templateType)
+            throws IOException {
+        String resourcePath =
+                TEMPLATES_DIR
+                        + "/"
+                        + templateName.concat(".").concat(templateType.name().toLowerCase());
+        InputStream is = getClass().getResourceAsStream(resourcePath);
+        if (is == null) throw new IOException("Template resource not found: " + resourcePath);
+        return is;
     }
 
     @Override
     public byte[] loadTemplateContent(String s) {
         try (InputStream is = getTemplateStream(s)) {
-            assert is != null;
             return is.readAllBytes();
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new TemplateCatalogException(e);
         }
     }
 
@@ -54,35 +56,40 @@ public class ResourcesTemplateCatalog extends AbstractTemplateCatalog<String> {
 
     @Override
     public TemplateMetadata<String> findOne(String s) {
-        try {
-            URL resource = getClass().getResource(TEMPLATES_DIR + "/" + s);
-            if (resource != null) {
-                Path path = Paths.get(resource.toURI());
-                if (Files.exists(path)) {
-                    TemplateMetadata<String> metadata = new TemplateMetadata<>();
-                    metadata.setId(s);
-                    String[] fileArr = s.split("\\.");
-                    metadata.setName(fileArr[0]);
-                    metadata.setTemplateType(TemplateType.valueOf(fileArr[1].toUpperCase()));
-                    return metadata;
-                }
+        try (InputStream testStream = getClass().getResourceAsStream(TEMPLATES_DIR + "/" + s)) {
+            if (testStream != null) {
+                TemplateMetadata<String> metadata = new TemplateMetadata<>();
+                metadata.setId(s);
+                String[] fileArr = s.split("\\.");
+                metadata.setName(fileArr[0]);
+                metadata.setTemplateType(
+                        TemplateType.valueOf(fileArr[fileArr.length - 1].toUpperCase()));
+                return metadata;
             }
-        } catch (Exception e) {
+        } catch (IOException e) {
             throw new TemplateCatalogException(e);
         }
-        return null;
+        throw new TemplateCatalogException("Template resource not found: " + s);
     }
 
     @Override
     public List<TemplateMetadata<String>> searchTemplates(SearchParams searchParams) {
-        try (Stream<Path> paths =
-                Files.list(
-                        Paths.get(
-                                Objects.requireNonNull(getClass().getResource(TEMPLATES_DIR))
-                                        .toURI()))) {
-            return paths.filter(p -> toPredicate(searchParams).test(p))
-                    .map(p -> asMetadata(p.getFileName().toString()))
-                    .toList();
+        try {
+            URL dirUrl =
+                    Objects.requireNonNull(
+                            getClass().getResource(TEMPLATES_DIR),
+                            "Templates directory not found: " + TEMPLATES_DIR);
+            if ("jar".equals(dirUrl.getProtocol())) {
+                throw new UnsupportedOperationException(
+                        "searchTemplates is not supported when resources are packaged in a JAR");
+            }
+            try (Stream<Path> paths = Files.list(Paths.get(dirUrl.toURI()))) {
+                return paths.filter(p -> toPredicate(searchParams).test(p))
+                        .map(p -> asMetadata(p.getFileName().toString()))
+                        .toList();
+            }
+        } catch (UnsupportedOperationException e) {
+            throw e;
         } catch (Exception e) {
             throw new TemplateCatalogException(e);
         }

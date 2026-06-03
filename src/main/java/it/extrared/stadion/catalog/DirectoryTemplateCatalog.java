@@ -1,6 +1,8 @@
 package it.extrared.stadion.catalog;
 
-import static it.extrared.stadion.catalog.FilesUtils.*;
+import static it.extrared.stadion.catalog.FilesUtils.asMetadata;
+import static it.extrared.stadion.catalog.FilesUtils.createFullFileName;
+import static it.extrared.stadion.catalog.FilesUtils.toPredicate;
 
 import it.extrared.stadion.exceptions.InvalidTemplateException;
 import it.extrared.stadion.exceptions.UnsupportedMediaTypeException;
@@ -34,7 +36,7 @@ public class DirectoryTemplateCatalog extends AbstractTemplateCatalog<String> {
         try {
             return Files.readAllBytes(path.resolve(id));
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new TemplateCatalogException(e);
         }
     }
 
@@ -54,13 +56,13 @@ public class DirectoryTemplateCatalog extends AbstractTemplateCatalog<String> {
     public TemplateMetadata<String> findOne(String id) {
         Path file = path.resolve(id);
         if (!Files.exists(file)) {
-            throw new RuntimeException("No template found for %s".formatted(id));
+            throw new TemplateCatalogException("No template found for %s".formatted(id));
         }
         TemplateMetadata<String> metadata = new TemplateMetadata<>();
         metadata.setId(id);
         String[] fileArr = id.split("\\.");
         metadata.setName(fileArr[0]);
-        metadata.setTemplateType(TemplateType.valueOf(fileArr[1].toUpperCase()));
+        metadata.setTemplateType(TemplateType.valueOf(fileArr[fileArr.length - 1].toUpperCase()));
         return metadata;
     }
 
@@ -71,7 +73,7 @@ public class DirectoryTemplateCatalog extends AbstractTemplateCatalog<String> {
                     .map(p -> asMetadata(p.getFileName().toString()))
                     .toList();
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new TemplateCatalogException(e);
         }
     }
 

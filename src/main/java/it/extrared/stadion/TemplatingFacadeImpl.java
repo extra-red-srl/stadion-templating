@@ -14,19 +14,25 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 public class TemplatingFacadeImpl<ID> implements TemplatingFacade<ID> {
 
     private final TemplateCatalog<ID> templateCatalog;
 
     public TemplatingFacadeImpl(TemplateCatalog<ID> templateCatalog) {
-        this.templateCatalog = templateCatalog;
+        this.templateCatalog =
+                Objects.requireNonNull(templateCatalog, "templateCatalog must not be null");
     }
 
     @Override
     public void applyTemplate(
             ID templateId, MediaType outMediaType, OutputStream outputStream, InputData... input)
             throws ServiceNotFound, IOException, InvalidTemplateException {
+        Objects.requireNonNull(templateId, "templateId must not be null");
+        Objects.requireNonNull(outMediaType, "outMediaType must not be null");
+        Objects.requireNonNull(outputStream, "outputStream must not be null");
+        Objects.requireNonNull(input, "input must not be null");
         StadionTemplate template = templateCatalog.loadTemplateById(templateId, outMediaType);
         OutputWriterFactory factory =
                 ServiceProvider.getServiceByMediaType(OutputWriterFactory.class, outMediaType);
@@ -66,6 +72,10 @@ public class TemplatingFacadeImpl<ID> implements TemplatingFacade<ID> {
     public void applyTemplateOnPojo(
             ID id, MediaType targetMediaType, OutputStream outputStream, Object input)
             throws ServiceNotFound, IOException, InvalidTemplateException {
+        Objects.requireNonNull(id, "id must not be null");
+        Objects.requireNonNull(targetMediaType, "targetMediaType must not be null");
+        Objects.requireNonNull(outputStream, "outputStream must not be null");
+        Objects.requireNonNull(input, "input must not be null");
         StadionTemplate template = templateCatalog.loadTemplateById(id, targetMediaType);
         OutputWriterFactory factory =
                 ServiceProvider.getServiceByMediaType(OutputWriterFactory.class, targetMediaType);

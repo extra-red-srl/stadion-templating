@@ -29,7 +29,7 @@ public class FilesUtils {
         metadata.setId(str);
         String[] fileArr = str.split("\\.");
         metadata.setName(fileArr[0]);
-        metadata.setTemplateType(TemplateType.valueOf(fileArr[1].toUpperCase()));
+        metadata.setTemplateType(TemplateType.valueOf(fileArr[fileArr.length - 1].toUpperCase()));
         return metadata;
     }
 }
