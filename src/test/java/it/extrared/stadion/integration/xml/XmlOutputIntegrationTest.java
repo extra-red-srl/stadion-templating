@@ -45,8 +45,6 @@ import org.xml.sax.SAXException;
 
 public class XmlOutputIntegrationTest extends StadionIntegrationTest {
 
-    private static final XPath X_PATH = XPathFactory.newInstance().newXPath();
-
     @Test
     public void testXmlToXmlTemplating()
             throws InvalidTemplateException,
@@ -112,7 +110,8 @@ public class XmlOutputIntegrationTest extends StadionIntegrationTest {
     }
 
     private void assertEq(String xpath, Object test, Node context) throws XPathExpressionException {
-        Object result = X_PATH.compile(xpath).evaluate(context, XPathConstants.STRING);
+        XPath xpathI = XPathFactory.newInstance().newXPath();
+        Object result = xpathI.compile(xpath).evaluate(context, XPathConstants.STRING);
         assertEquals(test.toString(), result);
     }
 }
