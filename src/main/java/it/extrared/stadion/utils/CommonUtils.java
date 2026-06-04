@@ -1,3 +1,18 @@
+/*
+ * Copyright 2026 Extrared
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package it.extrared.stadion.utils;
 
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -16,6 +31,7 @@ import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Stream;
 
+/** General-purpose utility methods shared across the library. */
 public class CommonUtils {
 
     private static final String DEF_DATE_FORMAT = "yyyy-MM-dd";
@@ -34,28 +50,66 @@ public class CommonUtils {
         return FORMATTER_CACHE.computeIfAbsent(pattern, DateTimeFormatter::ofPattern);
     }
 
+    /**
+     * Returns {@code true} if {@code astring} is neither {@code null} nor blank.
+     *
+     * @param astring the string to test
+     * @return {@code true} when the string contains at least one non-whitespace character
+     */
     public static boolean hasText(String astring) {
         return astring != null && astring.trim().length() > 0;
     }
 
+    /**
+     * Formats {@code date} using the library default date pattern ({@code yyyy-MM-dd}).
+     *
+     * @param date the date to format
+     * @return the formatted string
+     */
     public static String defFormatDate(Date date) {
         return formatDate(DEF_DATE_FORMAT, date);
     }
 
+    /**
+     * Formats {@code date} using the given pattern.
+     *
+     * @param format the pattern string (e.g. {@code "dd/MM/yyyy"})
+     * @param date the date to format
+     * @return the formatted string
+     */
     public static String formatDate(String format, Date date) {
         return getFormatter(format).format(date.toInstant().atZone(ZoneOffset.UTC));
     }
 
+    /**
+     * Formats a {@link java.time.temporal.TemporalAccessor} using the library default date pattern.
+     *
+     * @param temporalAccessor the temporal value to format
+     * @return the formatted string
+     */
     public static String defFormatTemporalAccessor(TemporalAccessor temporalAccessor) {
         return formatTemporalAccessor(DEF_DATE_FORMAT, temporalAccessor);
     }
 
+    /**
+     * Formats a {@link java.time.temporal.TemporalAccessor} using the given pattern.
+     *
+     * @param format the pattern string
+     * @param temporalAccessor the temporal value to format
+     * @return the formatted string
+     */
     public static String formatTemporalAccessor(String format, TemporalAccessor temporalAccessor) {
         if (temporalAccessor instanceof Instant instant)
             temporalAccessor = instant.atZone(ZoneOffset.UTC).toLocalDateTime();
         return getFormatter(format).format(temporalAccessor);
     }
 
+    /**
+     * Trims leading and trailing spaces from {@code value}.
+     *
+     * @param value the string to trim
+     * @return the trimmed string, or the original if empty
+     */
     public static String unwrapWhiteSpace(String value) {
         int length = value.length();
         if (!hasText(value)) return value;

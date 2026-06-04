@@ -1,12 +1,46 @@
+/*
+ * Copyright 2026 Extrared
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package it.extrared.stadion.read;
 
 import it.extrared.stadion.templating.node.StadionTemplate;
 import java.io.Closeable;
 import java.io.IOException;
 
+/**
+ * Parses a template input stream and produces a compiled {@link StadionTemplate}.
+ *
+ * <p>Implementations are format-specific:
+ *
+ * <ul>
+ *   <li>{@code JsonTemplateReader} — parses JSON templates
+ *   <li>{@code XmlTemplateReader} — parses XML templates using StAX
+ * </ul>
+ *
+ * <p>Readers are {@link Closeable}; always use them in a try-with-resources block.
+ */
 public interface TemplateReader extends Closeable {
 
+    /**
+     * Parses the input stream and returns the compiled template.
+     *
+     * @return the compiled template
+     * @throws IOException on parse or I/O errors
+     */
     StadionTemplate readTemplate() throws IOException;
 
+    /** Closes the underlying input stream. */
     void close() throws IOException;
 }

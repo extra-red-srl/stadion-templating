@@ -1,3 +1,18 @@
+/*
+ * Copyright 2026 Extrared
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package it.extrared.stadion.catalog;
 
 import com.github.benmanes.caffeine.cache.Cache;
@@ -41,10 +56,23 @@ public class CachingTemplateCatalog<ID> extends DelegatingTemplateCatalog<ID> {
 
     private final Cache<CacheKey<ID>, StadionTemplate> cache;
 
+    /**
+     * Creates a caching catalog wrapping {@code delegate} with default settings (200 entries,
+     * 10-minute TTL).
+     *
+     * @param delegate the underlying catalog to cache
+     */
     public CachingTemplateCatalog(TemplateCatalog<ID> delegate) {
         this(delegate, DEFAULT_MAX_SIZE, DEFAULT_TTL);
     }
 
+    /**
+     * Creates a caching catalog with custom capacity and expiry settings.
+     *
+     * @param delegate the underlying catalog to cache
+     * @param maxSize maximum number of compiled templates to keep in the cache
+     * @param ttl time-to-live for each cache entry after it was last written
+     */
     public CachingTemplateCatalog(TemplateCatalog<ID> delegate, int maxSize, Duration ttl) {
         super(delegate);
         this.cache = Caffeine.newBuilder().maximumSize(maxSize).expireAfterWrite(ttl).build();

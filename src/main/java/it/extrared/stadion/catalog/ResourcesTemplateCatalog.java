@@ -1,3 +1,18 @@
+/*
+ * Copyright 2026 Extrared
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package it.extrared.stadion.catalog;
 
 import static it.extrared.stadion.catalog.FilesUtils.asMetadata;
@@ -15,6 +30,14 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Stream;
 
+/**
+ * Read-only {@link TemplateCatalog} that loads templates from the classpath under the {@code
+ * /stadion-templates/} resource directory.
+ *
+ * <p>This catalog is suitable for bundling templates inside a JAR. Note that {@link
+ * #searchTemplates(SearchParams)} is not supported when the classpath is packaged as a JAR (an
+ * {@link UnsupportedOperationException} will be thrown in that case).
+ */
 public class ResourcesTemplateCatalog extends AbstractTemplateCatalog<String> {
 
     private static final String TEMPLATES_DIR = "/stadion-templates";

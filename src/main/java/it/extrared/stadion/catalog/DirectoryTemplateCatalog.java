@@ -1,3 +1,18 @@
+/*
+ * Copyright 2026 Extrared
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package it.extrared.stadion.catalog;
 
 import static it.extrared.stadion.catalog.FilesUtils.asMetadata;
@@ -15,6 +30,14 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.stream.Stream;
 
+/**
+ * {@link TemplateCatalog} implementation that reads templates from a directory on the local
+ * filesystem.
+ *
+ * <p>Template files are looked up by their full filename (e.g. {@code myTemplate.json}). The
+ * directory must exist and be readable at construction time. Saving a template writes a new file
+ * into the same directory.
+ */
 public class DirectoryTemplateCatalog extends AbstractTemplateCatalog<String> {
 
     private final Path path;
