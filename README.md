@@ -44,9 +44,9 @@ Add the JitPack repository and the dependency to your `pom.xml` — no token or 
 </repositories>
 
 <dependency>
-    <groupId>com.github.OWNER</groupId>
+    <groupId>com.github.extra-red-srl</groupId>
     <artifactId>stadion-templating</artifactId>
-    <version>v1.0.1</version>
+    <version>1.0.1</version>
 </dependency>
 ```
 
