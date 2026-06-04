@@ -14,7 +14,7 @@ produce JSON or XML output. Multiple input sources can be combined in a single t
 - **Heterogeneous input in a single pass** - a single template execution can draw from multiple sources simultaneously
   (e.g. a JSON document and an XML document), with `$isJSON` / `$isXML` guards to route each section to the right
   source. Orchestrating this with Jolt, XSLT, or any single-source engine requires external glue code.
-- **Familiar pipe syntax** - the `{{value | $function:arg1:arg2}}` notation mirrors Angular pipes â€” both the pipe
+- **Familiar pipe syntax** - the `{{value | $function:arg1:arg2}}` notation mirrors Angular pipes: both the pipe
   operator `|` and the colon-separated argument syntax are identical. Frontend developers can read and write Stadion
   templates without any prior knowledge of the engine.
 
@@ -33,7 +33,7 @@ produce JSON or XML output. Multiple input sources can be combined in a single t
 
 ## Installation
 
-Add the JitPack repository and the dependency to your `pom.xml` â€” no token or `settings.xml` required:
+Add the JitPack repository and the dependency to your `pom.xml`:
 
 ```xml
 <repositories>
@@ -319,12 +319,12 @@ Negate any filter by inserting `!` after `$`: `$!eq` means "not equal".
 
 When `{{$inlineN}}` (where N is any digit, e.g. `{{$inline1}}`, `{{$inline2}}`) is used as a **field name**, the
 engine suppresses the wrapping object or array boundary and writes its contents directly into the parent level.
-This flattens â€” or "inlines" â€” the output of the enclosed section into the surrounding object.
+This flattens or "inlines" the output of the enclosed section into the surrounding object.
 
 The digit suffix exists only to ensure the template remains valid JSON (object keys must be unique within the same
 object). All inline markers, regardless of their number, behave identically.
 
-**Without inline** â€” the iterated fields would be nested inside an unnamed array:
+**Without inline** the iterated fields would be nested inside an unnamed array:
 ```json
 {
   "productId": "...",
@@ -336,7 +336,7 @@ object). All inline markers, regardless of their number, behave identically.
 ```
 Output: `{ "productId": "...", "submodelFields": [{"name": "Nameplate"}, {"name": "TechnicalData"}] }`
 
-**With inline** â€” the fields from each iterated element are written directly at the enclosing object level:
+**With inline** the fields from each iterated element are written directly at the enclosing object level:
 ```json
 {
   "productId": "...",
