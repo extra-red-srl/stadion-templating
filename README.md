@@ -31,6 +31,40 @@ produce JSON or XML output. Multiple input sources can be combined in a single t
 | JSON + XML (composite) | JSON   |
 | JSON + XML (composite) | XML    |
 
+## Installation
+
+Add the JitPack repository and the dependency to your `pom.xml` — no token or `settings.xml` required:
+
+```xml
+<repositories>
+    <repository>
+        <id>jitpack.io</id>
+        <url>https://jitpack.io</url>
+    </repository>
+</repositories>
+
+<dependency>
+    <groupId>com.github.OWNER</groupId>
+    <artifactId>stadion-templating</artifactId>
+    <version>v1.0.1</version>
+</dependency>
+```
+
+Replace `OWNER` with the GitHub user or organisation that hosts the repository, and `v1.0.1` with the desired
+[release tag](https://github.com/OWNER/stadion-templating/releases).
+
+For Gradle:
+
+```groovy
+repositories {
+    maven { url 'https://jitpack.io' }
+}
+
+dependencies {
+    implementation 'com.github.OWNER:stadion-templating:v1.0.1'
+}
+```
+
 ## Quick start
 
 ```java
