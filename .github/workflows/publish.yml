@@ -1,4 +1,4 @@
-name: Publish to GitHub Packages
+name: Release Check
 
 on:
   push:
@@ -6,11 +6,8 @@ on:
       - 'v*'
 
 jobs:
-  publish:
+  verify:
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: write
 
     steps:
       - uses: actions/checkout@v4
@@ -21,11 +18,6 @@ jobs:
           java-version: '21'
           distribution: 'temurin'
           cache: maven
-          server-id: github
-          server-username: GITHUB_ACTOR
-          server-password: GITHUB_TOKEN
 
-      - name: Publish package
-        run: mvn -B --no-transfer-progress deploy -Dspotless.action=check
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Verify build on tag
+        run: mvn -B --no-transfer-progress verify -Dspotless.action=check
