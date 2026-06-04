@@ -8,13 +8,13 @@ produce JSON or XML output. Multiple input sources can be combined in a single t
 - **WYSIWYG templates** - the template is a valid JSON (or XML) document with the same structure as the desired output.
   No mental mapping between a transformation DSL and the result: what you write is what you get.
 - **Simpler than Jolt** - Jolt's spec-based transformations require learning a dedicated DSL with non-obvious
-  semantics (`shift`, `default`, `modify`, `cardinality`, …). Stadion templates are plain JSON with `{{directive}}`
+  semantics (`shift`, `default`, `modify`, `cardinality`, â€¦). Stadion templates are plain JSON with `{{directive}}`
   placeholders, readable and editable without specialist knowledge. Missing or null values are handled inline via
   `$if_then_else` and the `$null` filter, covering the most common `default`/`cardinality` use cases.
 - **Heterogeneous input in a single pass** - a single template execution can draw from multiple sources simultaneously
   (e.g. a JSON document and an XML document), with `$isJSON` / `$isXML` guards to route each section to the right
   source. Orchestrating this with Jolt, XSLT, or any single-source engine requires external glue code.
-- **Familiar pipe syntax** - the `{{value | $function:arg1:arg2}}` notation mirrors Angular pipes — both the pipe
+- **Familiar pipe syntax** - the `{{value | $function:arg1:arg2}}` notation mirrors Angular pipes â€” both the pipe
   operator `|` and the colon-separated argument syntax are identical. Frontend developers can read and write Stadion
   templates without any prior knowledge of the engine.
 
@@ -33,7 +33,7 @@ produce JSON or XML output. Multiple input sources can be combined in a single t
 
 ## Installation
 
-Add the JitPack repository and the dependency to your `pom.xml` — no token or `settings.xml` required:
+Add the JitPack repository and the dependency to your `pom.xml` â€” no token or `settings.xml` required:
 
 ```xml
 <repositories>
@@ -319,12 +319,12 @@ Negate any filter by inserting `!` after `$`: `$!eq` means "not equal".
 
 When `{{$inlineN}}` (where N is any digit, e.g. `{{$inline1}}`, `{{$inline2}}`) is used as a **field name**, the
 engine suppresses the wrapping object or array boundary and writes its contents directly into the parent level.
-This flattens — or "inlines" — the output of the enclosed section into the surrounding object.
+This flattens â€” or "inlines" â€” the output of the enclosed section into the surrounding object.
 
 The digit suffix exists only to ensure the template remains valid JSON (object keys must be unique within the same
 object). All inline markers, regardless of their number, behave identically.
 
-**Without inline** — the iterated fields would be nested inside an unnamed array:
+**Without inline** â€” the iterated fields would be nested inside an unnamed array:
 ```json
 {
   "productId": "...",
@@ -336,7 +336,7 @@ object). All inline markers, regardless of their number, behave identically.
 ```
 Output: `{ "productId": "...", "submodelFields": [{"name": "Nameplate"}, {"name": "TechnicalData"}] }`
 
-**With inline** — the fields from each iterated element are written directly at the enclosing object level:
+**With inline** â€” the fields from each iterated element are written directly at the enclosing object level:
 ```json
 {
   "productId": "...",
@@ -404,3 +404,60 @@ making it possible to extract fields from different sources in the same template
 
 This template renders material items from a JSON source if the context is JSON, or from an XML source if the context
 is XML - both can be active simultaneously when composite input is used.
+
+## Extension Points (SPI)
+
+Stadion Templating is built on the Java `ServiceLoader` SPI, so every major subsystem can be replaced
+or extended by providing your own implementation and registering it in
+`META-INF/services/`.
+
+### 1 — Custom directive / function (`TemplateDirectiveFactory`)
+
+Implement `TemplateDirectiveFactory` to add a new `{{$myFunction:arg}}` directive callable from templates.
+
+```java
+public class Sha256Factory extends AbstractDirectiveFactory {
+
+    @Override
+    public DirectiveInfo getInfo() {
+        return new DirectiveInfo("sha256"); // no parameters
+    }
+
+    @Override
+    public TemplateDirective createDirective(Object... params) {
+        validate(params);
+        return neew Sha256Directive()
+    }
+}
+```
+
+Register in `META-INF/services/it.extrared.stadion.templating.directive.factory.TemplateDirectiveFactory`:
+
+```
+com.example.Sha256Factory
+```
+
+The directive is then available in templates as `{{value | $sha256}}`.
+
+### 2 — Custom logging backend (`LogWriterFactory`)
+
+By default the engine logs via JUL (`java.util.logging`). Replace it by implementing `LogWriterFactory`
+(and optionally a thin `LogWriter` adapter for your framework):
+
+```java
+public class Slf4jLogWriterFactory implements LogWriterFactory {
+
+    @Override
+    public LogWriter getLogger(Class<?> clazz) {
+        return new Slf4jLogWriter(LoggerFactory.getLogger(clazz));
+    }
+}
+```
+
+Register in `META-INF/services/it.extrared.stadion.log.LogWriterFactory`:
+
+```
+com.example.Slf4jLogWriterFactory
+```
+
+Only the first registered factory is used; if none is found the built-in JUL factory is used as fallback.
