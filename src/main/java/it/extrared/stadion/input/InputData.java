@@ -53,7 +53,7 @@ public class InputData {
         return new InputData(InputType.XML, input);
     }
 
-    public static InputData jsonInputDate(InputStream input) {
+    public static InputData jsonInputData(InputStream input) {
         return new InputData(InputType.JSON, input);
     }
 

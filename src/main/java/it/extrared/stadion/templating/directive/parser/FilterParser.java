@@ -18,20 +18,7 @@ package it.extrared.stadion.templating.directive.parser;
 import it.extrared.stadion.exceptions.TemplatingException;
 import it.extrared.stadion.templating.directive.FilterTemplateDirective;
 import it.extrared.stadion.templating.directive.TemplateDirective;
-import it.extrared.stadion.templating.directive.filter.And;
-import it.extrared.stadion.templating.directive.filter.ContainsFilter;
-import it.extrared.stadion.templating.directive.filter.Eq;
-import it.extrared.stadion.templating.directive.filter.Filter;
-import it.extrared.stadion.templating.directive.filter.GreaterThan;
-import it.extrared.stadion.templating.directive.filter.GreaterThanEq;
-import it.extrared.stadion.templating.directive.filter.InFilter;
-import it.extrared.stadion.templating.directive.filter.IsJSON;
-import it.extrared.stadion.templating.directive.filter.IsNull;
-import it.extrared.stadion.templating.directive.filter.IsXML;
-import it.extrared.stadion.templating.directive.filter.LessThan;
-import it.extrared.stadion.templating.directive.filter.LessThanEq;
-import it.extrared.stadion.templating.directive.filter.Not;
-import it.extrared.stadion.templating.directive.filter.Or;
+import it.extrared.stadion.templating.directive.filter.*;
 import java.util.AbstractMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -105,7 +92,8 @@ public class FilterParser extends ChainingSingleDirectiveParser {
                     new AbstractMap.SimpleImmutableEntry<>(
                             "null", (params) -> new IsNull((TemplateDirective) params.getFirst())),
                     new AbstractMap.SimpleImmutableEntry<>("isJSON", (params -> new IsJSON())),
-                    new AbstractMap.SimpleImmutableEntry<>("isXML", (params -> new IsXML())));
+                    new AbstractMap.SimpleImmutableEntry<>("isXML", (params -> new IsXML())),
+                    new AbstractMap.SimpleImmutableEntry<>("isPojo", (params -> new IsPojo())));
 
     private static final Pattern FILTER_PATTERN =
             Pattern.compile(

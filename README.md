@@ -12,24 +12,31 @@ produce JSON or XML output. Multiple input sources can be combined in a single t
   placeholders, readable and editable without specialist knowledge. Missing or null values are handled inline via
   `$if_then_else` and the `$null` filter, covering the most common `default`/`cardinality` use cases.
 - **Heterogeneous input in a single pass** - a single template execution can draw from multiple sources simultaneously
-  (e.g. a JSON document and an XML document), with `$isJSON` / `$isXML` guards to route each section to the right
-  source. Orchestrating this with Jolt, XSLT, or any single-source engine requires external glue code.
+  (e.g. a JSON document, an XML document, and a Java POJO), with `$isJSON` / `$isXML` / `$isPojo` guards to route
+  each section to the right source. Orchestrating this with Jolt, XSLT, or any single-source engine requires external
+  glue code.
 - **Familiar pipe syntax** - the `{{value | $function:arg1:arg2}}` notation mirrors Angular pipes: both the pipe
   operator `|` and the colon-separated argument syntax are identical. Frontend developers can read and write Stadion
   templates without any prior knowledge of the engine.
 
 ## Supported input/output combinations
 
-| Input                  | Output |
-|------------------------|--------|
-| Java POJO              | JSON   |
-| Java POJO              | XML    |
-| JSON                   | JSON   |
-| JSON                   | XML    |
-| XML                    | JSON   |
-| XML                    | XML    |
-| JSON + XML (composite) | JSON   |
-| JSON + XML (composite) | XML    |
+| Input                         | Output |
+|-------------------------------|--------|
+| Java POJO                     | JSON   |
+| Java POJO                     | XML    |
+| JSON                          | JSON   |
+| JSON                          | XML    |
+| XML                           | JSON   |
+| XML                           | XML    |
+| JSON + XML (composite)        | JSON   |
+| JSON + XML (composite)        | XML    |
+| POJO + JSON (composite)       | JSON   |
+| POJO + JSON (composite)       | XML    |
+| POJO + XML (composite)        | JSON   |
+| POJO + XML (composite)        | XML    |
+| POJO + JSON + XML (composite) | JSON   |
+| POJO + JSON + XML (composite) | XML    |
 
 ## Installation
 
@@ -72,15 +79,23 @@ TemplateCatalog<String> catalog =
         new CachingTemplateCatalog<>(new DirectoryTemplateCatalog(templatesPath));
 TemplatingFacade<String> facade = new TemplatingFacadeImpl<>(catalog);
 
-facade.applyTemplateOnPojo(templateId, MediaType.A_JSON, outputStream, myPojo);
+// single POJO input
+facade.applyTemplate(templateId, MediaType.A_JSON, outputStream,
+        InputData.pojoInputData(myPojo));
 
-facade.applyTemplate(templateId, MediaType.A_JSON, outputStream, MediaType.A_JSON, jsonInputStream);
+// single JSON input
+facade.applyTemplate(templateId, MediaType.A_JSON, outputStream,
+        InputData.jsonInputData(jsonInputStream));
 
-facade.applyTemplate(templateId, MediaType.A_JSON, outputStream, MediaType.A_XML, xmlInputStream);
+// single XML input
+facade.applyTemplate(templateId, MediaType.A_XML, outputStream,
+        InputData.xmlInputData(xmlInputStream));
 
-InputData xmlInput  = InputData.builder().mediaType(MediaType.A_XML).input(xmlStream).build();
-InputData jsonInput = InputData.builder().mediaType(MediaType.A_JSON).input(jsonStream).build();
-facade.applyTemplate(templateId, MediaType.A_JSON, outputStream, xmlInput, jsonInput);
+// composite: POJO + JSON + XML
+facade.applyTemplate(templateId, MediaType.A_JSON, outputStream,
+        InputData.pojoInputData(myPojo),
+        InputData.jsonInputData(jsonInputStream),
+        InputData.xmlInputData(xmlInputStream));
 ```
 
 ## Template Directives
@@ -310,6 +325,7 @@ Negate any filter by inserting `!` after `$`: `$!eq` means "not equal".
 | `$null`     | Value is null                               | `{{prop $null}}`                         |
 | `$isJSON`   | Current context is a JSON node              | `{{$isJSON}}`                            |
 | `$isXML`    | Current context is an XML node              | `{{$isXML}}`                             |
+| `$isPojo`   | Current context is a Java POJO              | `{{$isPojo}}`                            |
 | `$and`      | Logical AND of two filters                  | `{{strProp $eq 'x' $and numProp $gt 5}}` |
 | `$or`       | Logical OR of two filters                   | `{{strProp $eq 'x' $or numProp $gt 5}}`  |
 
@@ -379,11 +395,11 @@ bypassing both the `submodels` and `submodelElements` nesting.
 
 ---
 
-### Composite input and `$isJSON` / `$isXML`
+### Composite input and `$isJSON` / `$isXML` / `$isPojo`
 
 When multiple input sources are passed to `applyTemplate()`, the engine combines them into a list and the template
-receives both. `$isJSON` and `$isXML` allow the template to branch on which source is currently in context,
-making it possible to extract fields from different sources in the same template:
+receives all of them. `$isJSON`, `$isXML`, and `$isPojo` allow the template to branch on which source is currently
+in context, making it possible to extract fields from different source types in the same template execution:
 
 ```json
 [
@@ -403,7 +419,19 @@ making it possible to extract fields from different sources in the same template
 ```
 
 This template renders material items from a JSON source if the context is JSON, or from an XML source if the context
-is XML - both can be active simultaneously when composite input is used.
+is XML. With composite input all active sources are iterated simultaneously.
+
+When a POJO is combined with JSON or XML sources, use `$isPojo` to branch to property-path directives:
+
+```json
+{
+  "name": "{{$isPojo}}{{name}}",
+  "{{$inline1}}": [
+    { "$if": "{{$isJSON}}", "$ctx": "{{$jpointer:'/extra'}}" },
+    { "extraField": "{{$jpointer:'/value'}}" }
+  ]
+}
+```
 
 ---
 

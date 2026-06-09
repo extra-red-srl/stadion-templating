@@ -54,7 +54,7 @@ public class JsonOutputIntegrationTest extends StadionIntegrationTest {
         String id = saveTemplate(templateCatalog, templateName, TemplateType.JSON);
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         try (InputStream is = getClass().getResourceAsStream("testPayload1.json")) {
-            facade.applyTemplate(id, MediaType.A_JSON, baos, InputData.jsonInputDate(is));
+            facade.applyTemplate(id, MediaType.A_JSON, baos, InputData.jsonInputData(is));
         }
         byte[] bytes = baos.toByteArray();
         assertResult(bytes);
@@ -94,7 +94,7 @@ public class JsonOutputIntegrationTest extends StadionIntegrationTest {
         try (InputStream is = getClass().getResourceAsStream("testCompositePayload.xml");
                 InputStream is2 = getClass().getResourceAsStream("testCompositePayload.json")) {
             InputData inputData = InputData.xmlInputData(is);
-            InputData inputData2 = InputData.jsonInputDate(is2);
+            InputData inputData2 = InputData.jsonInputData(is2);
             facade.applyTemplate(id, MediaType.A_JSON, baos, inputData, inputData2);
         }
         byte[] bytes = baos.toByteArray();

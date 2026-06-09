@@ -83,7 +83,7 @@ public class XmlOutputIntegrationTest extends StadionIntegrationTest {
         String id = saveTemplate(templateCatalog, templateName, TemplateType.XML);
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         try (InputStream is = getClass().getResourceAsStream("testPayload1.json")) {
-            facade.applyTemplate(id, MediaType.A_XML, baos, InputData.jsonInputDate(is));
+            facade.applyTemplate(id, MediaType.A_XML, baos, InputData.jsonInputData(is));
         }
         byte[] bytes = baos.toByteArray();
         assertResult(bytes);
