@@ -12,6 +12,16 @@
       "nichel"
     ]
   },
+  "hazardousSubstances":[
+    {
+      "code":"Li",
+      "name":"Lithium"
+    },
+    {
+      "code":"Ni",
+      "name":"Nichel"
+    }
+  ],
   "efficiency": 10,
   "envIndex": 10.4,
   "recycled": false,

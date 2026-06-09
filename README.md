@@ -405,6 +405,121 @@ making it possible to extract fields from different sources in the same template
 This template renders material items from a JSON source if the context is JSON, or from an XML source if the context
 is XML - both can be active simultaneously when composite input is used.
 
+---
+
+## XML Templates
+
+XML templates follow the same principles as JSON templates: the template is a valid XML document with the same
+structure as the desired output, enriched with `{{directive}}` expressions and `stadion:` attributes.
+
+The `stadion` namespace must be declared on the root element:
+
+```xml
+xmlns:stadion="http://localhost:8080/stadion"
+```
+
+### Dynamic values
+
+Any element text content or attribute value may contain one or more `{{...}}` expressions. Multiple expressions in
+the same string are concatenated at runtime:
+
+```xml
+<fullAddress>{{$xpath:'city/text()'}} {{$xpath:'country/text()'}}</fullAddress>
+```
+
+### `stadion:ctx` — context switch
+
+Narrows the evaluation scope for the element and all its children. Equivalent to `$ctx` in JSON:
+
+```xml
+<manufacturer stadion:ctx="{{$xpath:'producer'}}">
+    <name>{{$xpath:'companyName/text()'}}</name>
+    <city>{{$xpath:'address/text()'}}</city>
+</manufacturer>
+```
+
+### `stadion:collection` — repeating elements
+
+Marks the element as a collection node. The engine iterates over all items in the context and emits the
+element's children once per item. Equivalent to a JSON array:
+
+```xml
+<materials stadion:collection="true" stadion:ctx="{{$xpath:'composition/materials'}}">
+    <material>{{$xpath:'text()'}}</material>
+</materials>
+```
+
+### `stadion:if` — conditional rendering
+
+The element and all its children are emitted only when the filter expression evaluates to `true`.
+The same filter operators available in JSON (`eq`, `not`, `isNull`, `gt`, `gte`, `lt`, `lte`, `and`, `or`,
+`in`, `contains`) can be used:
+
+```xml
+<recycled stadion:if="{{not(isNull($xpath:'recycled/text()'))}}">
+    {{$xpath:'recycled/text()'}}
+</recycled>
+```
+
+### `<stadion:inline>` — transparent wrapper
+
+Suppresses the wrapper element tag and writes its children directly into the parent. Equivalent to `{{$inlineN}}`
+in JSON. Use `<stadion:inline>` as the element name:
+
+```xml
+<stadion:inline>
+    <efficiency>{{$xpath:'efficiency/text()'}}</efficiency>
+    <producedOn>{{$xpath:'producedOn/text()'}}</producedOn>
+</stadion:inline>
+```
+
+Output: `<efficiency>10</efficiency><producedOn>22/04/2024</producedOn>` — no wrapper tag is emitted.
+
+Combinable with `stadion:collection` to iterate and flatten a collection:
+
+```xml
+<stadion:inline stadion:collection="true" stadion:ctx="{{$xpath:'composition/materials'}}">
+    <material>{{$xpath:'text()'}}</material>
+</stadion:inline>
+```
+
+Output: one `<material>` element per item, written directly into the parent without any wrapper.
+
+### Complete XML template example
+
+```xml
+<Product xmlns:stadion="http://localhost:8080/stadion"
+         stadion:ctx="{{$xpath:'/Product'}}">
+
+    <name>{{$xpath:'@name'}}</name>
+
+    <!-- context switch: children resolved relative to producer -->
+    <manufacturer stadion:ctx="{{$xpath:'producer'}}">
+        <location>{{$xpath:'address/text()'}} {{$xpath:'city/text()'}}</location>
+        <name>{{$xpath:'companyName/text()'}}</name>
+    </manufacturer>
+
+    <!-- collection: one <material> per node -->
+    <materials stadion:collection="true" stadion:ctx="{{$xpath:'composition/materials'}}">
+        <material>{{$xpath:'text()'}}</material>
+    </materials>
+
+    <!-- conditional: only emitted when recycled is present -->
+    <recycled stadion:if="{{not(isNull($xpath:'recycled/text()'))}}">
+        {{$xpath:'recycled/text()'}}
+    </recycled>
+
+    <!-- inline: children go straight into <Product>, no wrapper tag -->
+    <stadion:inline>
+        <efficiency>{{$xpath:'efficiency/text()'}}</efficiency>
+        <producedOn>{{$xpath:'producedOn/text()'}}</producedOn>
+    </stadion:inline>
+
+</Product>
+```
+
+---
+
 ## Extension Points (SPI)
 
 Stadion Templating is built on the Java `ServiceLoader` SPI, so every major subsystem can be replaced

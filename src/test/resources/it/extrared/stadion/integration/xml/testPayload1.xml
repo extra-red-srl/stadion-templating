@@ -9,6 +9,10 @@
         <materials>lithium</materials>
         <materials>nichel</materials>
     </composition>
+    <hazardousSubstances>
+        <substance code="Li">Lithium</substance>
+        <substance code="Ni">Nichel</substance>
+    </hazardousSubstances>
     <efficiency>10</efficiency>
     <envIndex>10.4</envIndex>
     <recycled>false</recycled>

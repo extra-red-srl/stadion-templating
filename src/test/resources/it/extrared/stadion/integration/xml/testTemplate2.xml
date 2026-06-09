@@ -4,7 +4,10 @@
         <location>{{$jpointer:'/address'}} {{$jpointer:'/city'}} {{$jpointer:'/country'}}</location>
         <name>{{$jpointer:'/companyName'}}</name>
     </manufacturer>
-    <materials stadion:ctx="{{$jpointer: '/composition'}}">materials: {{$jpointer:'/composition/materials'}}</materials>
+    <hazardousSubstances stadion:collection="true" stadion:ctx="{{$jpointer:'/hazardousSubstances'}}">
+        <substance chemicalCode="{{$jpointer:'/code'}}">{{$jpointer:'/name'}}</substance>
+    </hazardousSubstances>
+    <materials>materials: {{$jpointer:'/composition/materials'}}</materials>
     <performance>
         <performanceIndex>{{$jpointer: '/efficiency'}}</performanceIndex>
         <envPerformance>{{$jpointer: '/envIndex'}}</envPerformance>
