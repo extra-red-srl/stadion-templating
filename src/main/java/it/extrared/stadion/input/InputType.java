@@ -15,22 +15,8 @@
  */
 package it.extrared.stadion.input;
 
-import java.util.List;
-
-/**
- * Base implementation of {@link TemplateInputConverter} that delegates media-type compatibility
- * checks to a fixed list of supported types.
- */
-public abstract class AbstractInputConverter implements TemplateInputConverter {
-
-    private final List<InputType> supportedInputTypes;
-
-    protected AbstractInputConverter(List<InputType> supportedInputTypes) {
-        this.supportedInputTypes = supportedInputTypes;
-    }
-
-    @Override
-    public boolean supportsInputType(InputType inputType) {
-        return supportedInputTypes.contains(inputType);
-    }
+public enum InputType {
+    JSON,
+    XML,
+    POJO
 }

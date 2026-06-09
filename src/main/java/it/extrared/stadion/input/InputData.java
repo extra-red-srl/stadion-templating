@@ -20,58 +20,44 @@ import java.io.InputStream;
 
 /**
  * Pairs an {@link InputStream} with its {@link MediaType}, representing one input source for a
- * template execution.
- *
- * <p>Use the fluent {@link Builder} to construct instances:
- *
- * <pre>{@code
- * InputData input = InputData.builder()
- *         .mediaType(MediaType.A_JSON)
- *         .input(jsonStream)
- *         .build();
- * }</pre>
+ * template execution. *
  */
 public class InputData {
 
-    private MediaType mediaType;
+    private InputType inputType;
 
-    private InputStream input;
+    private Object input;
 
-    private InputData(MediaType mediaType, InputStream input) {
-        this.mediaType = mediaType;
+    private InputData(InputType inputType, Object input) {
         this.input = input;
+        this.inputType = inputType;
     }
 
-    public MediaType getMediaType() {
-        return mediaType;
+    public InputType getInputType() {
+        return inputType;
     }
 
-    public InputStream getInput() {
+    public void setInputType(InputType inputType) {
+        this.inputType = inputType;
+    }
+
+    public Object getInput() {
         return input;
     }
 
-    public static Builder builder() {
-        return new Builder();
+    public void setInput(Object input) {
+        this.input = input;
     }
 
-    public static class Builder {
+    public static InputData xmlInputData(InputStream input) {
+        return new InputData(InputType.XML, input);
+    }
 
-        private MediaType mediaType;
+    public static InputData jsonInputData(InputStream input) {
+        return new InputData(InputType.JSON, input);
+    }
 
-        private InputStream input;
-
-        public Builder mediaType(MediaType mediaType) {
-            this.mediaType = mediaType;
-            return this;
-        }
-
-        public Builder input(InputStream input) {
-            this.input = input;
-            return this;
-        }
-
-        public InputData build() {
-            return new InputData(mediaType, input);
-        }
+    public static InputData pojoInputData(Object input) {
+        return new InputData(InputType.POJO, input);
     }
 }

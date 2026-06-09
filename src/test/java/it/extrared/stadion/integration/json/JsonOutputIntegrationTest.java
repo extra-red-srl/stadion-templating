@@ -29,6 +29,7 @@ import it.extrared.stadion.catalog.DirectoryTemplateCatalog;
 import it.extrared.stadion.catalog.TemplateCatalog;
 import it.extrared.stadion.exceptions.InvalidTemplateException;
 import it.extrared.stadion.exceptions.ServiceNotFound;
+import it.extrared.stadion.exceptions.UnsupportedInputTypeException;
 import it.extrared.stadion.formats.MediaType;
 import it.extrared.stadion.formats.TemplateType;
 import it.extrared.stadion.input.InputData;
@@ -42,7 +43,10 @@ public class JsonOutputIntegrationTest extends StadionIntegrationTest {
 
     @Test
     public void testJsonToJsonTemplating()
-            throws InvalidTemplateException, IOException, ServiceNotFound {
+            throws InvalidTemplateException,
+                    IOException,
+                    ServiceNotFound,
+                    UnsupportedInputTypeException {
         String templateName = "testTemplate1";
         TemplateCatalog<String> templateCatalog =
                 new CachingTemplateCatalog<>(new DirectoryTemplateCatalog(root));
@@ -50,7 +54,7 @@ public class JsonOutputIntegrationTest extends StadionIntegrationTest {
         String id = saveTemplate(templateCatalog, templateName, TemplateType.JSON);
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         try (InputStream is = getClass().getResourceAsStream("testPayload1.json")) {
-            facade.applyTemplate(id, MediaType.A_JSON, baos, MediaType.A_JSON, is);
+            facade.applyTemplate(id, MediaType.A_JSON, baos, InputData.jsonInputData(is));
         }
         byte[] bytes = baos.toByteArray();
         assertResult(bytes);
@@ -58,7 +62,10 @@ public class JsonOutputIntegrationTest extends StadionIntegrationTest {
 
     @Test
     public void testXmlToJsonTemplating()
-            throws InvalidTemplateException, IOException, ServiceNotFound {
+            throws InvalidTemplateException,
+                    IOException,
+                    ServiceNotFound,
+                    UnsupportedInputTypeException {
         String templateName = "testTemplate2";
         TemplateCatalog<String> templateCatalog =
                 new CachingTemplateCatalog<>(new DirectoryTemplateCatalog(root));
@@ -66,7 +73,7 @@ public class JsonOutputIntegrationTest extends StadionIntegrationTest {
         String id = saveTemplate(templateCatalog, templateName, TemplateType.JSON);
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         try (InputStream is = getClass().getResourceAsStream("testPayload1.xml")) {
-            facade.applyTemplate(id, MediaType.A_JSON, baos, MediaType.A_XML, is);
+            facade.applyTemplate(id, MediaType.A_JSON, baos, InputData.xmlInputData(is));
         }
         byte[] bytes = baos.toByteArray();
         assertResult(bytes);
@@ -74,7 +81,10 @@ public class JsonOutputIntegrationTest extends StadionIntegrationTest {
 
     @Test
     public void testCompositeToJsonTemplating()
-            throws InvalidTemplateException, IOException, ServiceNotFound {
+            throws InvalidTemplateException,
+                    IOException,
+                    ServiceNotFound,
+                    UnsupportedInputTypeException {
         String templateName = "testTemplateComposite";
         TemplateCatalog<String> templateCatalog =
                 new CachingTemplateCatalog<>(new DirectoryTemplateCatalog(root));
@@ -83,9 +93,8 @@ public class JsonOutputIntegrationTest extends StadionIntegrationTest {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         try (InputStream is = getClass().getResourceAsStream("testCompositePayload.xml");
                 InputStream is2 = getClass().getResourceAsStream("testCompositePayload.json")) {
-            InputData inputData = InputData.builder().mediaType(MediaType.A_XML).input(is).build();
-            InputData inputData2 =
-                    InputData.builder().mediaType(MediaType.A_JSON).input(is2).build();
+            InputData inputData = InputData.xmlInputData(is);
+            InputData inputData2 = InputData.jsonInputData(is2);
             facade.applyTemplate(id, MediaType.A_JSON, baos, inputData, inputData2);
         }
         byte[] bytes = baos.toByteArray();

@@ -15,15 +15,11 @@
  */
 package it.extrared.stadion.input;
 
-import static it.extrared.stadion.formats.MediaType.A_XHTML;
-import static it.extrared.stadion.formats.MediaType.A_XML;
-import static it.extrared.stadion.formats.MediaType.T_XHTML;
-import static it.extrared.stadion.formats.MediaType.T_XML;
+import static it.extrared.stadion.input.InputType.XML;
 
-import it.extrared.stadion.formats.MediaType;
+import it.extrared.stadion.exceptions.UnsupportedInputTypeException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Arrays;
 import java.util.List;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -33,13 +29,12 @@ import org.xml.sax.SAXException;
 /** {@link TemplateInputConverter} for XML and XHTML input streams. */
 public class XmlInputConverter extends AbstractInputConverter {
 
-    private static final List<MediaType> SUPPORTED_MEDIA_TYPES =
-            Arrays.asList(A_XML, T_XML, A_XHTML, T_XHTML);
+    private static final List<InputType> SUPPORTED_INPUT_TYPES = List.of(XML);
 
-    private DocumentBuilder documentBuilder;
+    private final DocumentBuilder documentBuilder;
 
     public XmlInputConverter() {
-        super(SUPPORTED_MEDIA_TYPES);
+        super(SUPPORTED_INPUT_TYPES);
         DocumentBuilderFactory builderFactory = DocumentBuilderFactory.newInstance();
         builderFactory.setNamespaceAware(true);
         try {
@@ -50,9 +45,13 @@ public class XmlInputConverter extends AbstractInputConverter {
     }
 
     @Override
-    public Object convert(InputStream inputStream) throws IOException {
+    public Object convert(Object input) throws IOException, UnsupportedInputTypeException {
+        if (!(input instanceof InputStream))
+            throw new UnsupportedInputTypeException(
+                    "Input of type %s must be an %s"
+                            .formatted(InputType.JSON, InputStream.class.getSimpleName()));
         try {
-            return documentBuilder.parse(inputStream);
+            return documentBuilder.parse((InputStream) input);
         } catch (SAXException e) {
             throw new IOException(e);
         }

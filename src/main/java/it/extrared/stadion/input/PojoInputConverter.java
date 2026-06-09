@@ -15,31 +15,18 @@
  */
 package it.extrared.stadion.input;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import it.extrared.stadion.exceptions.UnsupportedInputTypeException;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.List;
 
-/** {@link TemplateInputConverter} for JSON input; deserialises content using Jackson. */
-public class JsonInputConverter extends AbstractInputConverter {
-
-    private static final List<InputType> INPUT_TYPES = List.of(InputType.JSON);
-
-    private final ObjectMapper objectMapper;
-
-    public JsonInputConverter() {
-        super(INPUT_TYPES);
-        this.objectMapper = new ObjectMapper();
+public class PojoInputConverter extends AbstractInputConverter {
+    public PojoInputConverter() {
+        super(List.of(InputType.POJO));
     }
 
     @Override
     public Object convert(Object input) throws UnsupportedInputTypeException, IOException {
-        if (!(input instanceof InputStream))
-            throw new UnsupportedInputTypeException(
-                    "Input of type %s must be an %s"
-                            .formatted(InputType.JSON, InputStream.class.getSimpleName()));
-        return objectMapper.readTree((InputStream) input);
+        return input;
     }
 
     @Override

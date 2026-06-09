@@ -13,24 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package it.extrared.stadion.input;
+package it.extrared.stadion.templating.directive.filter;
 
-import java.util.List;
+import com.fasterxml.jackson.databind.JsonNode;
+import org.w3c.dom.Node;
 
-/**
- * Base implementation of {@link TemplateInputConverter} that delegates media-type compatibility
- * checks to a fixed list of supported types.
- */
-public abstract class AbstractInputConverter implements TemplateInputConverter {
-
-    private final List<InputType> supportedInputTypes;
-
-    protected AbstractInputConverter(List<InputType> supportedInputTypes) {
-        this.supportedInputTypes = supportedInputTypes;
-    }
+/** A Filter that tests whether the value is a POJO. */
+public class IsPojo implements Filter {
 
     @Override
-    public boolean supportsInputType(InputType inputType) {
-        return supportedInputTypes.contains(inputType);
+    public boolean evaluate(Object context) {
+        return !(context instanceof JsonNode || context instanceof Node);
     }
 }

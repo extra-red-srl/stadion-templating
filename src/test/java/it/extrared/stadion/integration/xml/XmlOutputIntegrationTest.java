@@ -24,8 +24,10 @@ import it.extrared.stadion.catalog.DirectoryTemplateCatalog;
 import it.extrared.stadion.catalog.TemplateCatalog;
 import it.extrared.stadion.exceptions.InvalidTemplateException;
 import it.extrared.stadion.exceptions.ServiceNotFound;
+import it.extrared.stadion.exceptions.UnsupportedInputTypeException;
 import it.extrared.stadion.formats.MediaType;
 import it.extrared.stadion.formats.TemplateType;
+import it.extrared.stadion.input.InputData;
 import it.extrared.stadion.integration.StadionIntegrationTest;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -34,13 +36,11 @@ import java.io.InputStream;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.xpath.XPath;
-import javax.xml.xpath.XPathConstants;
-import javax.xml.xpath.XPathExpressionException;
-import javax.xml.xpath.XPathFactory;
+import javax.xml.xpath.*;
 import org.junit.jupiter.api.Test;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
 public class XmlOutputIntegrationTest extends StadionIntegrationTest {
@@ -54,7 +54,8 @@ public class XmlOutputIntegrationTest extends StadionIntegrationTest {
                     ServiceNotFound,
                     XPathExpressionException,
                     ParserConfigurationException,
-                    SAXException {
+                    SAXException,
+                    UnsupportedInputTypeException {
         String templateName = "testTemplate1";
         TemplateCatalog<String> templateCatalog =
                 new CachingTemplateCatalog<>(new DirectoryTemplateCatalog(root));
@@ -62,7 +63,7 @@ public class XmlOutputIntegrationTest extends StadionIntegrationTest {
         String id = saveTemplate(templateCatalog, templateName, TemplateType.XML);
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         try (InputStream is = getClass().getResourceAsStream("testPayload1.xml")) {
-            facade.applyTemplate(id, MediaType.A_XML, baos, MediaType.A_XML, is);
+            facade.applyTemplate(id, MediaType.A_XML, baos, InputData.xmlInputData(is));
         }
         byte[] bytes = baos.toByteArray();
         assertResult(bytes);
@@ -75,7 +76,8 @@ public class XmlOutputIntegrationTest extends StadionIntegrationTest {
                     ServiceNotFound,
                     XPathExpressionException,
                     ParserConfigurationException,
-                    SAXException {
+                    SAXException,
+                    UnsupportedInputTypeException {
         String templateName = "testTemplate2";
         TemplateCatalog<String> templateCatalog =
                 new CachingTemplateCatalog<>(new DirectoryTemplateCatalog(root));
@@ -83,7 +85,7 @@ public class XmlOutputIntegrationTest extends StadionIntegrationTest {
         String id = saveTemplate(templateCatalog, templateName, TemplateType.XML);
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         try (InputStream is = getClass().getResourceAsStream("testPayload1.json")) {
-            facade.applyTemplate(id, MediaType.A_XML, baos, MediaType.A_JSON, is);
+            facade.applyTemplate(id, MediaType.A_XML, baos, InputData.jsonInputData(is));
         }
         byte[] bytes = baos.toByteArray();
         assertResult(bytes);
@@ -105,6 +107,7 @@ public class XmlOutputIntegrationTest extends StadionIntegrationTest {
                 document);
         assertEq("/Product/manufacturer/name/text()", "Extrared", document);
         assertEq("/Product/materials/text()", "materials: lithium,nichel", document);
+        assertLengthEq("/Product/hazardousSubstances//substance", 2, document);
         assertEq("/Product/performance/performanceIndex/text()", 10, document);
         assertEq("/Product/performance/envPerformance/text()", 10.4d, document);
         assertEq("/Product/performance/recycled/text()", false, document);
@@ -114,5 +117,15 @@ public class XmlOutputIntegrationTest extends StadionIntegrationTest {
     private void assertEq(String xpath, Object test, Node context) throws XPathExpressionException {
         Object result = X_PATH.compile(xpath).evaluate(context, XPathConstants.STRING);
         assertEquals(test.toString(), result);
+    }
+
+    private void assertLengthEq(String xpath, Integer expectedN, Node context)
+            throws XPathExpressionException {
+        Object result =
+                XPathFactory.newInstance()
+                        .newXPath()
+                        .compile(xpath)
+                        .evaluate(context, XPathConstants.NODESET);
+        assertEquals(expectedN, ((NodeList) result).getLength());
     }
 }
