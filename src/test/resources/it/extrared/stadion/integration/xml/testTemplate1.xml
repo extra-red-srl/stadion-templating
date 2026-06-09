@@ -4,7 +4,10 @@
         <location>{{$xpath:'address/text()'}} {{$xpath:'city/text()'}} {{$xpath:'country/text()'}}</location>
         <name>{{$xpath:'companyName/text()'}}</name>
     </manufacturer>
-    <materials stadion:ctx="{{$xpath: 'composition'}}">materials: {{$xpath:'//materials/text()'}}</materials>
+    <hazardousSubstances stadion:collection="true" stadion:ctx="{{$xpath:'hazardousSubstances//substance'}}">
+        <substance chemicalCode="{{$xpath:'@code'}}">{{$xpath:'text()'}}</substance>
+    </hazardousSubstances>
+    <materials>materials: {{$xpath:'composition//materials/text()'}}</materials>
     <performance>
         <performanceIndex>{{$xpath: 'efficiency/text()'}}</performanceIndex>
         <envPerformance>{{$xpath: 'envIndex/text()'}}</envPerformance>

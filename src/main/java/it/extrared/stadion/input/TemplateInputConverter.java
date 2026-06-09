@@ -15,7 +15,8 @@
  */
 package it.extrared.stadion.input;
 
-import it.extrared.stadion.MediaTypeHandlerService;
+import it.extrared.stadion.exceptions.UnsupportedInputTypeException;
+import it.extrared.stadion.formats.MediaType;
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -31,14 +32,30 @@ import java.io.InputStream;
  *   <li>{@code XmlInputConverter} — parses XML to a {@link org.w3c.dom.Document}
  * </ul>
  */
-public interface TemplateInputConverter extends MediaTypeHandlerService {
+public interface TemplateInputConverter {
 
     /**
      * Parses the given input stream and returns the corresponding context object.
      *
-     * @param inputStream the raw input stream
+     * @param input the input object
      * @return the parsed context object
      * @throws IOException if the stream cannot be parsed
      */
-    Object convert(InputStream inputStream) throws IOException;
+    Object convert(Object input) throws UnsupportedInputTypeException, IOException;
+
+    /**
+     * Returns the priority of this handler. Higher values take precedence when multiple handlers
+     * support the same {@link MediaType}.
+     *
+     * @return a non-negative priority value
+     */
+    int priority();
+
+    /**
+     * Returns {@code true} if this handler can process the given input type.
+     *
+     * @param inputType the input type to check
+     * @return {@code true} if supported
+     */
+    boolean supportsInputType(InputType inputType);
 }

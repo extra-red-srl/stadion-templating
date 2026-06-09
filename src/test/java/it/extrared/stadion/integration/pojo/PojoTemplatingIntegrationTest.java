@@ -28,8 +28,10 @@ import it.extrared.stadion.catalog.DirectoryTemplateCatalog;
 import it.extrared.stadion.catalog.TemplateCatalog;
 import it.extrared.stadion.exceptions.InvalidTemplateException;
 import it.extrared.stadion.exceptions.ServiceNotFound;
+import it.extrared.stadion.exceptions.UnsupportedInputTypeException;
 import it.extrared.stadion.formats.MediaType;
 import it.extrared.stadion.formats.TemplateType;
+import it.extrared.stadion.input.InputData;
 import it.extrared.stadion.integration.StadionIntegrationTest;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -198,7 +200,10 @@ public class PojoTemplatingIntegrationTest extends StadionIntegrationTest {
 
     @Test
     public void testSimpleFieldsAndFunctions()
-            throws ServiceNotFound, IOException, InvalidTemplateException {
+            throws ServiceNotFound,
+                    IOException,
+                    InvalidTemplateException,
+                    UnsupportedInputTypeException {
         JsonNode result = applyAndParse(restaurant);
 
         // Long id written as JSON number, asText() returns its string representation
@@ -214,7 +219,10 @@ public class PojoTemplatingIntegrationTest extends StadionIntegrationTest {
 
     @Test
     public void testCtxDirectiveWithNestedObject()
-            throws ServiceNotFound, IOException, InvalidTemplateException {
+            throws ServiceNotFound,
+                    IOException,
+                    InvalidTemplateException,
+                    UnsupportedInputTypeException {
         JsonNode result = applyAndParse(restaurant);
 
         JsonNode owner = result.at("/owner");
@@ -226,7 +234,10 @@ public class PojoTemplatingIntegrationTest extends StadionIntegrationTest {
 
     @Test
     public void testCollectionIteration()
-            throws ServiceNotFound, IOException, InvalidTemplateException {
+            throws ServiceNotFound,
+                    IOException,
+                    InvalidTemplateException,
+                    UnsupportedInputTypeException {
         JsonNode result = applyAndParse(restaurant);
 
         ArrayNode items = (ArrayNode) result.at("/menuItems");
@@ -241,7 +252,10 @@ public class PojoTemplatingIntegrationTest extends StadionIntegrationTest {
 
     @Test
     public void testIfFilterOnCollection()
-            throws ServiceNotFound, IOException, InvalidTemplateException {
+            throws ServiceNotFound,
+                    IOException,
+                    InvalidTemplateException,
+                    UnsupportedInputTypeException {
         JsonNode result = applyAndParse(restaurant);
 
         ArrayNode expensive = (ArrayNode) result.at("/expensiveItems");
@@ -301,9 +315,12 @@ public class PojoTemplatingIntegrationTest extends StadionIntegrationTest {
     // ── helpers ───────────────────────────────────────────────────────────────
 
     private JsonNode applyAndParse(Object pojo)
-            throws ServiceNotFound, IOException, InvalidTemplateException {
+            throws ServiceNotFound,
+                    IOException,
+                    InvalidTemplateException,
+                    UnsupportedInputTypeException {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        facade.applyTemplateOnPojo(templateId, MediaType.A_JSON, baos, pojo);
+        facade.applyTemplate(templateId, MediaType.A_JSON, baos, InputData.pojoInputData(pojo));
         return new ObjectMapper().readTree(baos.toByteArray());
     }
 }

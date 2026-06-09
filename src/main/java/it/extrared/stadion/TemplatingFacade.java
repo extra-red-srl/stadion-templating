@@ -17,10 +17,10 @@ package it.extrared.stadion;
 
 import it.extrared.stadion.exceptions.InvalidTemplateException;
 import it.extrared.stadion.exceptions.ServiceNotFound;
+import it.extrared.stadion.exceptions.UnsupportedInputTypeException;
 import it.extrared.stadion.formats.MediaType;
 import it.extrared.stadion.input.InputData;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.OutputStream;
 
 /**
@@ -48,43 +48,8 @@ public interface TemplatingFacade<ID> {
      */
     void applyTemplate(
             ID id, MediaType targetMediaType, OutputStream outputStream, InputData... inputs)
-            throws ServiceNotFound, IOException, InvalidTemplateException;
-
-    /**
-     * Convenience overload that applies the template to a single input stream.
-     *
-     * @param id the template identifier
-     * @param targetMediaType the desired output format
-     * @param outputStream the stream to write the rendered output to
-     * @param inputMediaType the format of the input stream
-     * @param input the input stream
-     * @throws ServiceNotFound if no handler is registered for the requested media type
-     * @throws IOException on I/O errors
-     * @throws InvalidTemplateException if the template is structurally invalid
-     */
-    void applyTemplate(
-            ID id,
-            MediaType targetMediaType,
-            OutputStream outputStream,
-            MediaType inputMediaType,
-            InputStream input)
-            throws ServiceNotFound, IOException, InvalidTemplateException;
-
-    /**
-     * Applies the template to a Java POJO and writes the result in the requested format.
-     *
-     * <p>Property access is performed via JavaBeans getter introspection. All fields referenced in
-     * the template must expose a public getter.
-     *
-     * @param id the template identifier
-     * @param targetMediaType the desired output format
-     * @param outputStream the stream to write the rendered output to
-     * @param input the root POJO to evaluate the template against
-     * @throws ServiceNotFound if no handler is registered for the requested media type
-     * @throws IOException on I/O errors
-     * @throws InvalidTemplateException if the template is structurally invalid
-     */
-    void applyTemplateOnPojo(
-            ID id, MediaType targetMediaType, OutputStream outputStream, Object input)
-            throws ServiceNotFound, IOException, InvalidTemplateException;
+            throws ServiceNotFound,
+                    IOException,
+                    InvalidTemplateException,
+                    UnsupportedInputTypeException;
 }

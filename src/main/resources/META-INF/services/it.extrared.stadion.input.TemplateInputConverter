@@ -1,2 +1,3 @@
 it.extrared.stadion.input.JsonInputConverter
 it.extrared.stadion.input.XmlInputConverter
+it.extrared.stadion.input.PojoInputConverter

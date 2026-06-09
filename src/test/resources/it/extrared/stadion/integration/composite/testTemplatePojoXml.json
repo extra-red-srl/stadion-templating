@@ -1,0 +1,12 @@
+{
+    "{{$inline1}}": {
+        "$if": "{{$isPojo}}",
+        "id": "{{id}}",
+        "category": "{{category}}"
+    },
+    "{{$inline2}}": {
+        "$if": "{{$isXML}}",
+        "name": "{{$xpath:'/product/name/text()'}}",
+        "price": "{{$xpath:'/product/price/text()'}}"
+    }
+}

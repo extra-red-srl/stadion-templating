@@ -17,6 +17,8 @@ package it.extrared.stadion;
 
 import it.extrared.stadion.exceptions.ServiceNotFound;
 import it.extrared.stadion.formats.MediaType;
+import it.extrared.stadion.input.InputType;
+import it.extrared.stadion.input.TemplateInputConverter;
 import java.util.Comparator;
 import java.util.List;
 import java.util.ServiceLoader;
@@ -53,16 +55,7 @@ public class ServiceProvider {
     @SuppressWarnings("unchecked")
     public static <T extends MediaTypeHandlerService> T getServiceByMediaType(
             Class<T> serviceType, MediaType mediaType) throws ServiceNotFound {
-        List<T> all =
-                (List<T>)
-                        SERVICE_CACHE.computeIfAbsent(
-                                serviceType,
-                                type -> {
-                                    // ServiceLoader.load() is only executed on first access per
-                                    // type
-                                    List<T> discovered = discovery(serviceType);
-                                    return List.copyOf(discovered);
-                                });
+        List<T> all = getServiceCandidates(serviceType);
 
         List<T> candidates =
                 all.stream()
@@ -76,6 +69,41 @@ public class ServiceProvider {
                     "No service found for type %s supporting %s."
                             .formatted(serviceType.getSimpleName(), mediaType.asMime()));
         return candidates.getFirst();
+    }
+
+    /**
+     * Returns the highest-priority service of type {@code serviceType} that supports {@code
+     * mediaType}.
+     *
+     * @param <T> the service type
+     * @param serviceType the service interface class
+     * @param inputType the input type to match
+     * @return the best matching service
+     * @throws ServiceNotFound if no registered service supports the given media type
+     */
+    @SuppressWarnings("unchecked")
+    public static <T extends TemplateInputConverter> T getServiceByInputType(
+            Class<T> serviceType, InputType inputType) throws ServiceNotFound {
+        List<T> all = getServiceCandidates(serviceType);
+
+        List<T> candidates =
+                all.stream()
+                        .filter(srv -> srv.supportsInputType(inputType))
+                        // higher priority number wins; get(0) returns the best match
+                        .sorted(Comparator.comparing(T::priority).reversed())
+                        .toList();
+
+        if (candidates.isEmpty())
+            throw new ServiceNotFound(
+                    "No service found for type %s supporting %s."
+                            .formatted(serviceType.getSimpleName(), inputType.name()));
+        return candidates.getFirst();
+    }
+
+    public static <T> List<T> getServiceCandidates(Class<T> serviceType) {
+        return (List<T>)
+                SERVICE_CACHE.computeIfAbsent(
+                        serviceType, type -> List.copyOf(discovery(serviceType)));
     }
 
     private static <T> List<T> discovery(Class<T> srvType) {
