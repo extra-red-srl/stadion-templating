@@ -98,6 +98,122 @@ facade.applyTemplate(templateId, MediaType.A_JSON, outputStream,
         InputData.xmlInputData(xmlInputStream));
 ```
 
+## Template Catalog
+
+The `TemplateCatalog<ID>` interface is the storage and retrieval abstraction for compiled templates.
+`ID` is the type of the template identifier — both built-in implementations use `String`.
+
+### Built-in implementations
+
+#### `DirectoryTemplateCatalog` — filesystem directory
+
+Reads and writes templates from a directory on the local filesystem. The template identifier is the
+full filename (e.g. `myTemplate.json`).
+
+```java
+// from a path string, a Path, or a URI
+TemplateCatalog<String> catalog = new DirectoryTemplateCatalog("/opt/templates");
+TemplateCatalog<String> catalog = new DirectoryTemplateCatalog(Path.of("/opt/templates"));
+```
+
+#### `ResourcesTemplateCatalog` — classpath
+
+Read-only catalog that loads templates bundled inside the application JAR from the
+`/stadion-templates/` resource directory. `saveTemplate` throws `UnsupportedOperationException`.
+
+```java
+TemplateCatalog<String> catalog = new ResourcesTemplateCatalog();
+```
+
+Place templates at `src/main/resources/stadion-templates/myTemplate.json` and load them by name:
+
+```java
+facade.loadTemplateByName("myTemplate", MediaType.A_JSON);
+```
+
+#### `CachingTemplateCatalog` — in-memory cache decorator
+
+Wraps any `TemplateCatalog` and caches compiled templates so the underlying storage is only hit on
+a miss. Default settings: 200 entries, 10-minute TTL (Caffeine cache).
+
+```java
+// default settings
+TemplateCatalog<String> catalog = new CachingTemplateCatalog<>(new DirectoryTemplateCatalog("/opt/templates"));
+
+// custom capacity and TTL
+TemplateCatalog<String> catalog = new CachingTemplateCatalog<>(
+        new DirectoryTemplateCatalog("/opt/templates"), 500, Duration.ofMinutes(30));
+```
+
+`saveTemplate` automatically evicts the affected entry. For external updates (another process,
+cluster node) call `invalidate(id)` or `invalidateAll()` explicitly.
+
+### `TemplateCatalog` API
+
+| Method | Description |
+|--------|-------------|
+| `saveTemplate(byte[] content, TemplateMetadata<ID> metadata)` | Persists a new template; returns metadata enriched with the generated `id` |
+| `loadTemplateByName(String name, MediaType mediaType)` | Loads and compiles a template by logical name |
+| `loadTemplateById(ID id, MediaType mediaType)` | Loads and compiles a template by its identifier |
+| `loadTemplateContent(ID id)` | Returns the raw template bytes without compiling |
+| `findOne(ID id)` | Returns the `TemplateMetadata` for the given identifier |
+| `searchTemplates(SearchParams params)` | Returns all templates matching name and/or type criteria |
+
+### `TemplateMetadata<ID>`
+
+Each template is described by a `TemplateMetadata<ID>` record:
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `id` | `ID` | Unique identifier assigned by the catalog (e.g. filename) |
+| `name` | `String` | Logical name of the template (without extension) |
+| `templateType` | `TemplateType` | File format: `JSON` or `XML` |
+
+```java
+TemplateMetadata<String> meta = catalog.findOne("myTemplate.json");
+System.out.println(meta.getName());         // "myTemplate"
+System.out.println(meta.getTemplateType()); // JSON
+
+SearchParams params = new SearchParams();
+params.setTemplateType(TemplateType.JSON);
+List<TemplateMetadata<String>> jsonTemplates = catalog.searchTemplates(params);
+```
+
+### Custom catalog
+
+To integrate with a different backend (database, object storage, remote service), extend
+`AbstractTemplateCatalog<ID>` and implement the abstract storage methods:
+
+```java
+public class DatabaseTemplateCatalog extends AbstractTemplateCatalog<Long> {
+
+    @Override
+    public byte[] loadTemplateContent(Long id) {
+        // load raw bytes from DB by id
+    }
+
+    @Override
+    public TemplateMetadata<Long> saveTemplate(byte[] content, TemplateMetadata<Long> metadata)
+            throws InvalidTemplateException, IOException {
+        validate(metadata); // provided by AbstractTemplateCatalog
+        // persist content and metadata, assign generated id
+        return metadata;
+    }
+
+    @Override
+    public TemplateMetadata<Long> findOne(Long id) { ... }
+
+    @Override
+    public List<TemplateMetadata<Long>> searchTemplates(SearchParams params) { ... }
+}
+```
+
+Wrap it with `CachingTemplateCatalog` to add transparent caching without any extra code:
+
+```java
+TemplateCatalog<Long> catalog = new CachingTemplateCatalog<>(new DatabaseTemplateCatalog(...));
+```
+
 ## Template Directives
 
 A template is a JSON (or XML) document where directives have been placed to drive the transformation.
