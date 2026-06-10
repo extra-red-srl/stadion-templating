@@ -68,7 +68,7 @@ repositories {
 }
 
 dependencies {
-    implementation 'com.github.OWNER:stadion-templating:v1.0.1'
+    implementation 'com.github.OWNER:stadion-templating:v1.0.2'
 }
 ```
 
