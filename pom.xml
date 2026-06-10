@@ -19,7 +19,7 @@
     <groupId>it.extrared.stadion</groupId>
     <artifactId>stadion</artifactId>
     <packaging>jar</packaging>
-    <version>1.0-SNAPSHOT</version>
+    <version>1.0.3</version>
     <name>stadion</name>
     <url>http://maven.apache.org</url>
     <properties>
