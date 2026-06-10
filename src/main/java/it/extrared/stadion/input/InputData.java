@@ -49,11 +49,11 @@ public class InputData {
         this.input = input;
     }
 
-    public static InputData xmlInputData(InputStream input) {
+    public static InputData xmlInputData(Object input) {
         return new InputData(InputType.XML, input);
     }
 
-    public static InputData jsonInputData(InputStream input) {
+    public static InputData jsonInputData(Object input) {
         return new InputData(InputType.JSON, input);
     }
 
