@@ -17,13 +17,18 @@ package it.extrared.stadion.input;
 
 import static it.extrared.stadion.input.InputType.XML;
 
+import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import it.extrared.stadion.exceptions.UnsupportedInputTypeException;
+import it.extrared.stadion.log.LogWriter;
+import it.extrared.stadion.log.LogWriters;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
+import org.w3c.dom.Document;
 import org.xml.sax.SAXException;
 
 /** {@link TemplateInputConverter} for XML and XHTML input streams. */
@@ -32,6 +37,8 @@ public class XmlInputConverter extends AbstractInputConverter {
     private static final List<InputType> SUPPORTED_INPUT_TYPES = List.of(XML);
 
     private final DocumentBuilder documentBuilder;
+
+    private static final LogWriter LOG = LogWriters.getLogger(XmlInputConverter.class);
 
     public XmlInputConverter() {
         super(SUPPORTED_INPUT_TYPES);
@@ -46,15 +53,32 @@ public class XmlInputConverter extends AbstractInputConverter {
 
     @Override
     public Object convert(Object input) throws IOException, UnsupportedInputTypeException {
-        if (!(input instanceof InputStream))
-            throw new UnsupportedInputTypeException(
-                    "Input of type %s must be an %s"
-                            .formatted(InputType.JSON, InputStream.class.getSimpleName()));
         try {
-            return documentBuilder.parse((InputStream) input);
-        } catch (SAXException e) {
+            switch (input) {
+                case null -> {
+                    return null;
+                }
+                case InputStream is -> {
+                    return documentBuilder.parse(is);
+                }
+                case Document doc -> {
+                    return doc;
+                }
+                default -> {
+                    return convertPojo(input);
+                }
+            }
+
+        } catch (SAXException | ParserConfigurationException | IOException e) {
             throw new IOException(e);
         }
+    }
+
+    private Document convertPojo(Object input)
+            throws IOException, ParserConfigurationException, SAXException {
+        XmlMapper xmlMapper = new XmlMapper();
+        byte[] bytes = xmlMapper.writeValueAsBytes(input);
+        return documentBuilder.parse(new ByteArrayInputStream(bytes));
     }
 
     @Override
