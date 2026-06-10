@@ -720,3 +720,8 @@ com.example.Slf4jLogWriterFactory
 ```
 
 Only the first registered factory is used; if none is found the built-in JUL factory is used as fallback.
+
+
+## How to contribute
+
+Contributions are very welcome! Fork the repository, make your changes, and open a pull request with a clear description of the problem you're solving or the feature you're adding. Ensure an issue exists for the work you're doing, or create one if it doesn't. Follow the existing code style and include tests for your changes. We'll review your PR as soon as possible and provide feedback.
