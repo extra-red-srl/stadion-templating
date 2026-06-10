@@ -15,8 +15,11 @@
  */
 package it.extrared.stadion.input;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import it.extrared.stadion.exceptions.UnsupportedInputTypeException;
+import it.extrared.stadion.log.LogWriter;
+import it.extrared.stadion.log.LogWriters;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
@@ -28,6 +31,8 @@ public class JsonInputConverter extends AbstractInputConverter {
 
     private final ObjectMapper objectMapper;
 
+    private static final LogWriter LOG = LogWriters.getLogger(JsonInputConverter.class);
+
     public JsonInputConverter() {
         super(INPUT_TYPES);
         this.objectMapper = new ObjectMapper();
@@ -35,11 +40,26 @@ public class JsonInputConverter extends AbstractInputConverter {
 
     @Override
     public Object convert(Object input) throws UnsupportedInputTypeException, IOException {
-        if (!(input instanceof InputStream))
-            throw new UnsupportedInputTypeException(
-                    "Input of type %s must be an %s"
-                            .formatted(InputType.JSON, InputStream.class.getSimpleName()));
-        return objectMapper.readTree((InputStream) input);
+        switch (input) {
+            case null -> {
+                return null;
+            }
+            case InputStream is -> {
+                return objectMapper.readTree(is);
+            }
+            case JsonNode node -> {
+                return node;
+            }
+            default -> {
+                try {
+                    return objectMapper.convertValue(input, JsonNode.class);
+                } catch (IllegalArgumentException e) {
+                    LOG.error("Error while converting input to JSON", e);
+                    throw new UnsupportedInputTypeException(
+                            "Cannot convert type: " + input.getClass().getName());
+                }
+            }
+        }
     }
 
     @Override
