@@ -53,7 +53,7 @@ Add the JitPack repository and the dependency to your `pom.xml`:
 <dependency>
     <groupId>com.github.extra-red-srl</groupId>
     <artifactId>stadion-templating</artifactId>
-    <version>1.0.2</version>
+    <version>1.0.3</version>
 </dependency>
 ```
 
@@ -68,7 +68,7 @@ repositories {
 }
 
 dependencies {
-    implementation 'com.github.OWNER:stadion-templating:v1.0.2'
+    implementation 'com.github.extra-red-srl:stadion-templating:v1.0.3'
 }
 ```
 
